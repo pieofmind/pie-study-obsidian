@@ -3,6 +3,7 @@ import { tr } from "../i18n.ts";
 import { i, esc, bobBtn, cmdLearn, cmdReview, type Ctx } from "./shared.ts";
 import { judge, optionOrder, type QItem, type QState } from "../data/quest.ts";
 import { questResult } from "./study6.ts";
+import { frameDoc } from "./frames.ts";
 import type { Topic } from "../data/index.ts";
 
 export interface RvCard { q: string; a: string; token?: string; topic: Topic }
@@ -84,7 +85,7 @@ export function quizScreen(C: Ctx, z: QZ, w?: Wrap) {
     body = `<div class="q-match"><div>${pr.map((p, k) => `<button class="opt ${done.includes(k) ? "right" : z.selLeft === k ? "sel" : ""}" ${done.includes(k) || v != null ? "disabled" : `data-ml="${k}"`}>${esc(p[0])}</button>`).join("")}</div>
       <div>${z.shuf.map(k => `<button class="opt ${done.includes(k) ? "right" : z.wrongAt === k ? "wrong" : ""}" ${done.includes(k) || v != null ? "disabled" : `data-mr="${k}"`}>${esc(pr[k][1])}</button>`).join("")}</div></div>`;
   } else if (q.kind === "iframe") {
-    body = z.html[q.html!] != null ? `<iframe class="q-frame" sandbox="allow-scripts" style="height:${q.height}px" srcdoc="${esc(z.html[q.html!])}"></iframe>${v == null ? `<p class="sub muted">${tr("Làm trong khung trên; trang tự chấm rồi báo kết quả về đây.")}</p>` : ""}` : `<div class="note-call">${i("alert")}<div>${tr("Không đọc được file {0}.", esc(q.html))}</div></div>`;
+    body = z.html[q.html!] != null ? `<iframe class="q-frame" sandbox="allow-scripts" style="height:${q.height}px" data-frame="${frameDoc(z.html[q.html!])}"></iframe>${v == null ? `<p class="sub muted">${tr("Làm trong khung trên; trang tự chấm rồi báo kết quả về đây.")}</p>` : ""}` : `<div class="note-call">${i("alert")}<div>${tr("Không đọc được file {0}.", esc(q.html))}</div></div>`;
   } else if (q.kind === "input") {
     body = `${img}<div class="ask"><input data-qz-input value="${esc(z.input)}" placeholder="${tr("Gõ câu trả lời…")}" ${v != null ? "disabled" : ""}>${v == null ? `<button class="btn pri" data-qz-check>${tr("Kiểm tra")}</button>` : ""}</div>`;
   } else {

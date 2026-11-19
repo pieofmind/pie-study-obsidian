@@ -1,6 +1,6 @@
 /* Build: main.js (TS + ảnh Pie Bot nhúng) + styles.css (CSS prototype bọc trong .pie-study-root, font Be Vietnam Pro nhúng). */
 import esbuild from "esbuild";
-import builtins from "builtin-modules";
+import { builtinModules as builtins } from "node:module";
 import { readFileSync, writeFileSync } from "fs";
 
 const FONT = "node_modules/@fontsource/be-vietnam-pro";

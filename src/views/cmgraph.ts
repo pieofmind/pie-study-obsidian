@@ -64,10 +64,10 @@ export function mountGraph(box: HTMLElement, o: MountOpts): boolean {
   cv.addEventListener("pointermove", e => {
     const [mx, my] = pos(e);
     if (drag) { const p = toW(mx, my); drag.o.x = p.x; drag.o.y = p.y; drag.moved = true; alpha = Math.max(alpha, .25); return; }
-    if (pan) { T.x = pan.x + mx - pan.mx; T.y = pan.y + my - pan.my; cv.style.cursor = "grabbing"; return; }
-    hot = at(mx, my) || null; cv.style.cursor = hot && (hot.path || hot.slug) ? "pointer" : hot ? "grab" : "default";
+    if (pan) { T.x = pan.x + mx - pan.mx; T.y = pan.y + my - pan.my; cv.dataset.cur = "grabbing"; return; }
+    hot = at(mx, my) || null; cv.dataset.cur = hot && (hot.path || hot.slug) ? "pointer" : hot ? "grab" : "";
   });
-  cv.addEventListener("pointerup", () => { if (drag && !drag.moved) { if (drag.o.slug) o.go(drag.o.slug); else if (drag.o.path) o.open(drag.o.path); } if (drag) drag.o.fixed = false; drag = pan = null; cv.style.cursor = "default"; });
+  cv.addEventListener("pointerup", () => { if (drag && !drag.moved) { if (drag.o.slug) o.go(drag.o.slug); else if (drag.o.path) o.open(drag.o.path); } if (drag) drag.o.fixed = false; drag = pan = null; cv.dataset.cur = ""; });
   cv.addEventListener("pointerleave", () => { hot = null; });
   box.querySelector(".gv-ctl")?.addEventListener("click", e => {
     const b = (e.target as HTMLElement).closest<HTMLElement>("[data-gz]"); if (!b) return; e.stopPropagation();

@@ -64,7 +64,7 @@ export function tocFromMarkdown(md: string, maxLevel = 3): Heading[] {
   return out;
 }
 
-interface OutlineNode { title: string; items?: OutlineNode[] }
+export interface OutlineNode { title: string; items?: OutlineNode[] }
 /** Mục lục nhúng của PDF (pdf.js getOutline) → file markdown chỉ gồm dòng tiêu đề (độ sâu ≥ 3 gộp về ###). */
 export function pdfOutlineToMd(outline: OutlineNode[] | null | undefined): { md: string; count: number } {
   const lines: string[] = [];

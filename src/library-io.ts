@@ -2,7 +2,7 @@
    File hỏng hoặc sai khuôn: báo lỗi, KHÔNG ghi gì cho tới khi người dùng chọn "Tạo lại kho" (bản cũ giữ ở .bak). */
 import { App, TFile, normalizePath, loadPdfJs } from "obsidian";
 import { restoreBak } from "./practice/store.ts";
-import { parseLibrary, serializeLibrary, tocPathOf, tocFromMarkdown, addSource, slug, uniqueId, pdfOutlineToMd, LIB_PATH, SRC_DIR, type Library, type Heading, type Source, type SourceStatus } from "./data/library.ts";
+import { parseLibrary, serializeLibrary, tocPathOf, tocFromMarkdown, addSource, slug, uniqueId, pdfOutlineToMd, LIB_PATH, SRC_DIR, type Library, type Heading, type Source, type SourceStatus, type OutlineNode } from "./data/library.ts";
 
 export interface TocInfo { count: number; heads: string[]; outline: Heading[]; refExists: boolean }
 export interface LibState { ok: boolean; error?: string; lib: Library; info: Record<string, TocInfo> }
@@ -43,10 +43,14 @@ export interface FileInfo { heads?: number; outline?: number; pdfFail?: boolean;
 const extOf = (n: string) => n.match(/\.([a-z0-9]+)$/i)?.[1].toLowerCase() || "";
 
 interface PdfRead { md: string; count: number; author?: string; cover: ArrayBuffer | null }
+/** Phần pdf.js (loadPdfJs của Obsidian, không có kiểu) mà readPdf dùng tới. */
+interface PdfViewport { width: number; height: number }
+interface PdfPage { getViewport(o: { scale: number }): PdfViewport; render(o: { canvasContext: CanvasRenderingContext2D | null; viewport: PdfViewport }): { promise: Promise<void> } }
+interface PdfDoc { getOutline(): Promise<OutlineNode[] | null>; getMetadata(): Promise<{ info?: { Author?: unknown } } | null>; getPage(n: number): Promise<PdfPage>; destroy?(): Promise<void> }
+interface PdfJs { getDocument(o: { data: Uint8Array }): { promise: Promise<PdfDoc> } }
 /** Đọc PDF bằng pdf.js có sẵn của Obsidian: mục lục nhúng (bookmark), tác giả, và trang 1 vẽ thành ảnh PNG làm bìa. Không thêm thư viện. */
 export async function readPdf(data: ArrayBuffer, wantCover: boolean): Promise<PdfRead> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const pdfjs: any = await loadPdfJs(), doc = await pdfjs.getDocument({ data: new Uint8Array(data.slice(0)) }).promise;
+  const pdfjs = (await loadPdfJs()) as PdfJs, doc = await pdfjs.getDocument({ data: new Uint8Array(data.slice(0)) }).promise;
   try {
     const { md, count } = pdfOutlineToMd(await doc.getOutline());
     let author: string | undefined; try { const a = (await doc.getMetadata())?.info?.Author; if (typeof a === "string" && a.trim()) author = a.trim(); } catch { /* không có metadata */ }

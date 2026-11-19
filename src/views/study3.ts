@@ -3,6 +3,7 @@
 import { tr } from "../i18n.ts";
 import { i, esc, bobBtn, cmdLearn, type Ctx } from "./shared.ts";
 import { focusTop, corner } from "./practice.ts";
+import { frameDoc } from "./frames.ts";
 import { shortTitle, type Topic } from "../data/index.ts";
 import type { EssayPrompt, LecBlock } from "../data/lecture.ts";
 import { shownQuote } from "../data/lecshell.ts";
@@ -68,7 +69,7 @@ export function lectureScreen(C: Ctx, l: LC, newLectureCmd: string, tpl = "") {
   const lines = l.log.length ? l.log.slice(-50).map(x => `<div class="logline"><span class="pill tok">${esc(x.token)}</span><span class="${x.ok ? "" : "muted"}">${x.ok ? tr("trả lời đúng") : tr("trả lời sai")}</span></div>`).join("")
     : `<p class="sub muted" style="font-size:var(--pa-fs-sm);margin-top:8px">${tr("Câu hỏi trong bài giảng gửi kết quả về đây và vào nhật ký luyện tập.")}</p>`;
   return `<div class="focus q-play qd q-lec"><div class="focus-top"><button class="ibtn" data-exit title="${tr("Thoát (Esc)")}" aria-label="${tr("Thoát (Esc)")}">${i("x")}</button><span style="font-size:var(--pa-fs-sm);font-weight:560">${esc(tr("Bài giảng · {0}", shortTitle(t.title)))}</span><span style="flex:1"></span><span class="src">${i("file", 12)}${esc(name)}</span></div>
-    <div class="lect"><div class="frame"><iframe data-lecture sandbox="allow-scripts" referrerpolicy="no-referrer" srcdoc="${esc(l.doc)}"></iframe></div>
+    <div class="lect"><div class="frame"><iframe data-lecture sandbox="allow-scripts" data-frame="${frameDoc(l.doc)}"></iframe></div>
     <aside class="rail${l.blocks.length ? " lb" : ""}">${blockRail(C, l, tpl)}<div class="eyebrow"${l.blocks.length ? ' style="margin-top:18px"' : ""}>${tr("Ghi nhận từ bài giảng")}</div><div style="margin-top:6px">${lines}</div>
     <div class="note-call info" style="margin-top:18px">${i("info")}<div>${tr("Bài giảng chạy cách ly: không đọc được vault, chỉ được gửi kết quả theo một khuôn cố định.")}</div></div>
     <div class="acts" style="flex-direction:column;align-items:stretch">${bobBtn(C, tr("Hỏi {0} về bài giảng", C.agent), cmdLearn(t) + " — vừa xem bài giảng, có câu muốn hỏi")}${C.agentReady ? `<button class="btn ghost" data-bob="${esc(newLectureCmd)}">${i("plus")}${tr("Nhờ {0} soạn bài giảng mới", C.agent)}</button>` : ""}</div></aside></div></div>`;

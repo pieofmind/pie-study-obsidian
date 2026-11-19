@@ -79,6 +79,6 @@ export function play(root: HTMLElement, f: Fx) {
   bn.scrollIntoView({ block: "start" });
   const segs = bn.querySelectorAll(".q-seg i");
   segs.forEach((s, k) => window.setTimeout(() => restart(s, "fx-seg"), 250 + k * 90));
-  window.setTimeout(() => { bn.querySelector(".q-done")?.remove(); bn.insertAdjacentHTML("beforeend", `<span class="q-done">${tr("Xong tầng")}</span>`); restart(bn, "fx-bump"); burst(root, bn.querySelector(".q-done"), 28); }, 350 + segs.length * 90);
+  window.setTimeout(() => { bn.querySelector(".q-done")?.remove(); bn.createSpan({ cls: "q-done", text: tr("Xong tầng") }); restart(bn, "fx-bump"); burst(root, bn.querySelector(".q-done"), 28); }, 350 + segs.length * 90);
   cheer(root);
 }

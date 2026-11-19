@@ -8,6 +8,7 @@ import { domStats } from "../data/index.ts";
 import { questMap, shellD } from "./map.ts";
 import { overviewScreen, topicScreen, notebookScreen, onboardScreen, settingsScreen, reviewScreen, cmdNewPath } from "./screens.ts";
 import { syncMascot } from "./mascot.ts";
+import { setHtml, appendHtml, htmlFrag } from "./html.ts";
 import { play, type Fx } from "./motion.ts";
 import { badgesScreen, unlockToast } from "./badges.ts";
 import { reviewScreen as practiceReview, quizScreen, verdict, fmtGap, freshItem, secsLeft, focusTop, type RV, type QZ, type RvCard } from "./practice.ts";
@@ -100,7 +101,7 @@ export class StudyView extends ItemView {
       if (t.matches("[data-qz-input]") && this.qz) this.qz.input = t.value;
       if (t.matches("[data-essay]") && this.es) this.essayInput(t.value);
       if (this.ns && t.matches("[data-nsq],[data-nslink],[data-nsnb],[data-nsname]")) this.nsInput(t);
-      if (this.ma && t.matches("[data-mtq]")) { this.ma.q = t.value; const box = this.rootEl.querySelector(".mta .ns-files"); if (box) { const r = this.maFiles(); box.innerHTML = matFilesHtml(this.ma, r.files, r.total, this.maHave()); } }
+      if (this.ma && t.matches("[data-mtq]")) { this.ma.q = t.value; const box = this.rootEl.querySelector(".mta .ns-files"); if (box) { const r = this.maFiles(); setHtml(box, matFilesHtml(this.ma, r.files, r.total, this.maHave())); } }
     });
     this.registerDomEvent(window, "message", e => this.onLectureMsg(e));
     const onQuizFile = (f: TAbstractFile) => { const q = this.qn; if (q && q.stage === "wait" && f.path === q.path && f instanceof TFile && f.stat.mtime >= q.sentAt - 1000) void this.qnVet();
@@ -164,12 +165,11 @@ export class StudyView extends ItemView {
       if (live) {   // bài giảng đang chạy: chỉ vẽ lại cột phải + theme vỏ, không nạp lại iframe (mất trang đang xem); iframe cách ly giữ theme lúc mở
         this.rootEl.querySelector(".ob")?.setAttribute("data-theme", dark ? "dark" : "light");
         (live as HTMLIFrameElement).contentWindow?.postMessage({ type: "pie-study/theme", theme: dark ? "dark" : "light" }, "*");   // đợt 7: bài giảng đổi theme tại chỗ
-        const tpl = document.createElement("template"); tpl.innerHTML = html;
-        const rail = tpl.content.querySelector(".rail"), cur = this.rootEl.querySelector(".rail");
+        const rail = htmlFrag(html).querySelector(".rail"), cur = this.rootEl.querySelector(".rail");
         if (rail && cur) cur.replaceWith(rail);
         return;
       }
-      this.rootEl.innerHTML = `<div class="ob d2${calm ? " ps-calm" : ""}" data-theme="${dark ? "dark" : "light"}" data-edge="ledge"><div class="${this.frame === "desktop" ? "desk" : this.frame}"><div class="view">${html}</div></div></div>`;
+      setHtml(this.rootEl, `<div class="ob d2${calm ? " ps-calm" : ""}" data-theme="${dark ? "dark" : "light"}" data-edge="ledge"><div class="${this.frame === "desktop" ? "desk" : this.frame}"><div class="view">${html}</div></div></div>`);
       this.lcShown = S.screen === "lecture" ? this.lc : null;
       const fr = S.screen === "lecture" ? this.rootEl.querySelector<HTMLIFrameElement>("iframe[data-lecture]") : null;
       if (fr && this.lcGoto) { const id = this.lcGoto; this.lcGoto = null; fr.addEventListener("load", () => fr.contentWindow?.postMessage({ type: "pie-study/goto", id }, "*"), { once: true }); }
@@ -181,7 +181,7 @@ export class StudyView extends ItemView {
     else body = ({ home: () => (d ? questMap(C, d) : onboardScreen(C)), overview: () => overviewScreen(C), topic: () => topicScreen(C), notebook: () => notebookScreen(C), review: () => reviewScreen(C), onboard: () => onboardScreen(C), settings: () => settingsScreen(C), badges: () => badgesScreen(C, C.badges), mistakes: () => mistakesScreen(C, S.mkf || { st: "open", dom: "", tok: "" }), sources: () => (C.agentReady ? sourcesScreen(C) : questMap(C, d!)), library: () => (C.agentReady ? libraryScreen(C) : questMap(C, d!)), lectures: () => (d ? lecturesScreen(C) : questMap(C, d!)), mats: () => (d ? matsScreen(C) : questMap(C, d!)), maps: () => (d ? mapsScreen(C) : questMap(C, d!)) }[S.screen] || (() => questMap(C, d!)))();
     const dark = document.body.classList.contains("theme-dark");
     const calm = !C.motion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    this.rootEl.innerHTML = `<div class="ob d2${calm ? " ps-calm" : ""}" data-theme="${dark ? "dark" : "light"}" data-edge="ledge"><div class="${this.frame === "desktop" ? "desk" : this.frame}"><div class="view">${shellD(C, body)}${this.phone ? this.tabbar() : ""}${this.ns && C.agentReady ? this.nsHost(C) : ""}${this.ma ? this.maHost(C) : ""}</div></div></div>`;
+    setHtml(this.rootEl, `<div class="ob d2${calm ? " ps-calm" : ""}" data-theme="${dark ? "dark" : "light"}" data-edge="ledge"><div class="${this.frame === "desktop" ? "desk" : this.frame}"><div class="view">${shellD(C, body)}${this.phone ? this.tabbar() : ""}${this.ns && C.agentReady ? this.nsHost(C) : ""}${this.ma ? this.maHost(C) : ""}</div></div></div>`);
     this.afterRender(calm ? [] : fx);
     if (S.screen === "lectures" && d) void this.loadLecStats(d.topics);
     if (S.screen === "topic") { const t = this.plugin.index.all.find(x => x.slug === S.topic); if (t) void this.loadLecStats([t]); }
@@ -229,7 +229,7 @@ export class StudyView extends ItemView {
       } else { const src = this.cmaps.get(key)?.src; if (!src) return; parse = parseMermaid(src); }
       const ok = mountGraph(box, { parse, pathOf: (text, link) => (link ? mc.getFirstLinkpathDest(link, from)?.path : null) ?? lookupNote(ix, text),
         open: p => void this.app.workspace.openLinkText(p, "", true), go: slug => { const t = this.plugin.index.all.find(x => x.slug === slug); if (t) this.go({ screen: "topic", topic: t.slug, dom: t.dom, ttab: "notebook", sel: null }); } });
-      if (!ok) box.closest(".cm-scroll")!.innerHTML = `<div class="cm-err">${i("info", 14)}${tr("Không đọc được sơ đồ. Mở note để sửa hoặc nhờ {0} vẽ lại.", agentName(this.app))}</div>`;
+      if (!ok) setHtml(box.closest(".cm-scroll")!, `<div class="cm-err">${i("info", 14)}${tr("Không đọc được sơ đồ. Mở note để sửa hoặc nhờ {0} vẽ lại.", agentName(this.app))}</div>`);
     });
   }
 
@@ -274,7 +274,7 @@ export class StudyView extends ItemView {
     if (!this.toast || Date.now() >= this.toast.until) return null;
     const host = this.rootEl?.querySelector<HTMLElement>(".view"); if (!host) return null;
     host.querySelector(".bd-toast")?.remove();
-    host.insertAdjacentHTML("beforeend", unlockToast(this.toast.ids));
+    appendHtml(host, unlockToast(this.toast.ids));
     return host.lastElementChild;
   }
   /** Sổ huy hiệu đổi: chỉ vẽ lại khi đang ở màn Huy hiệu (để khỏi cắt chuyển động ở màn khác). */
@@ -492,7 +492,7 @@ export class StudyView extends ItemView {
       this.ns = nsFromTrigger(d.addsrc);
       if (d.addkind === "file" || d.addkind === "web" || d.addkind === "notebooklm") this.ns.kind = d.addkind;
       const view = this.rootEl.querySelector(".view"), C = this.ctx();
-      if (view && C.agentReady) { view.insertAdjacentHTML("beforeend", this.nsHost(C)); return; }   // mở hộp không vẽ lại cả màn
+      if (view && C.agentReady) { appendHtml(view, this.nsHost(C)); return; }   // mở hộp không vẽ lại cả màn
       return this.render();
     }
     const ns = this.ns; if (!ns) return;
@@ -523,7 +523,7 @@ export class StudyView extends ItemView {
   /** Gõ không vẽ lại cả hộp (giữ con trỏ); chỉ vẽ lại khi nút "Thêm vào kho" đổi trạng thái. */
   private nsInput(t: HTMLInputElement) {
     const ns = this.ns!, was = nsReady(ns);
-    if (t.matches("[data-nsq]")) { ns.q = t.value; const box = this.rootEl.querySelector(".ns-files"); if (box) { const r = this.nsFiles(); box.innerHTML = nsFilesHtml(ns, r.files, r.total); } return; }   // chỉ vẽ lại danh sách, không vẽ lại cả màn
+    if (t.matches("[data-nsq]")) { ns.q = t.value; const box = this.rootEl.querySelector(".ns-files"); if (box) { const r = this.nsFiles(); setHtml(box, nsFilesHtml(ns, r.files, r.total)); } return; }   // chỉ vẽ lại danh sách, không vẽ lại cả màn
     if (t.matches("[data-nslink]")) ns.link = t.value; else if (t.matches("[data-nsnb]")) ns.nb = t.value; else ns.name = t.value;
     if (was !== nsReady(ns)) { const pos = t.selectionStart ?? t.value.length, sel = t.matches("[data-nslink]") ? "[data-nslink]" : t.matches("[data-nsnb]") ? "[data-nsnb]" : "[data-nsname]"; this.render(); const n = this.rootEl.querySelector<HTMLInputElement>(sel); n?.focus(); n?.setSelectionRange(pos, pos); }
     else this.rootEl.querySelector<HTMLButtonElement>("[data-nsadd]")?.toggleAttribute("disabled", !nsReady(ns));

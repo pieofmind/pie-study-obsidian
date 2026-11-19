@@ -1,6 +1,6 @@
 {
   "name": "pie-study",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Pie Study: lesson map, understanding tracker and spaced review for Obsidian.",
   "main": "main.js",
@@ -11,10 +11,12 @@
   "devDependencies": {
     "@fontsource/be-vietnam-pro": "^5.3.0",
     "@types/node": "^24.19.2",
-    "builtin-modules": "^3.3.0",
     "esbuild": "^0.25.12",
+    "eslint": "^9.39.5",
+    "eslint-plugin-obsidianmd": "^0.6.0",
     "obsidian": "1.10",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.73.0"
   },
   "dependencies": {
     "d3": "7.9.0",

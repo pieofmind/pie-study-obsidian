@@ -7,7 +7,7 @@ export function syncMascot(root: HTMLElement) {
   const m = el.dataset.mood || "idle", k = el.dataset.mkey || "", fresh = k !== key;
   const play = m === "idle" && fresh && el.dataset.greet ? "wave" : m;
   // cùng chỗ + cùng mood thì không phát lại (render lại bản đồ không làm Pie Bot chào lần nữa)
-  el.innerHTML = `<img class="mascot-img m-${fresh || m !== mood ? play : m + " still"}" src="${PIEBOT}" alt="" draggable="false">`;
+  el.empty(); el.createEl("img", { cls: `mascot-img m-${fresh || m !== mood ? play : m + " still"}`, attr: { src: PIEBOT, alt: "", draggable: "false" } });
   key = k; mood = m;
 }
 export function cheer(root: HTMLElement) {
