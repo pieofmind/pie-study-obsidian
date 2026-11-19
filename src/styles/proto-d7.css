@@ -1,0 +1,17 @@
+/* PROTOTYPE — Đợt 7: mục lục khối của bài giảng ở cột phải. Phẳng, viền mảnh; khối đang xem có vạch màu chính. */
+.q-lec .lect .rail.lb { width: 300px; overflow-y: auto; padding-bottom: 6px; }
+.q-lec .rail.lb > * { flex: none; }
+.q-lec .rail.lb > .eyebrow + .lb-list { padding: 4px 6px 8px; }   /* thân thẻ có sẵn viền của cột phải; danh sách khối chỉ cần đệm hẹp */
+.q-lec .lb-row { display: grid; grid-template-columns: minmax(0, 1fr) 34px; align-items: center; position: relative; }
+.q-lec .lb-row + .lb-row { border-top: 1px solid var(--ln, var(--hair)); }
+.q-lec .lb-row.on { background: color-mix(in srgb, var(--c) 10%, var(--card)); }
+.q-lec .lb-row.on::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 0 3px 3px 0; background: var(--c); }
+.q-lec .lb-go { display: block; padding: 8px 6px 8px 12px; border: 0; background: transparent; color: var(--ink); font: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.q-lec .lb-go small { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink2); }
+.q-lec .lb-go b { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-lec .lb-re { width: 28px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--ink3); display: grid; place-items: center; cursor: pointer; }
+.q-lec .lb-re:hover { background: var(--bg2); color: var(--ink); }
+.q-lec .lb-deeps { display: grid; gap: 8px; margin-top: 8px; }
+.q-lec .lb-deep { display: grid; grid-template-columns: minmax(0, 1fr) 18px; gap: 10px; align-items: center; padding: 10px 12px 10px 14px; border: 1px solid color-mix(in srgb, var(--gold) 70%, transparent); border-radius: 14px; background: color-mix(in srgb, var(--gold) 18%, var(--card)); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.q-lec .lb-deep small { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink2); } .q-lec .lb-deep b { display: block; font-size: 13.5px; font-weight: 700; line-height: 1.3; }
+.phone .q-lec .lect .rail.lb { width: auto; overflow: visible; }

@@ -1,0 +1,9 @@
+/* Spec 7.9 — port từ prototype d9.css (1e8be4d), bỏ .mx-pick (chỉ có ở prototype). */
+.q-more-pop button.mx-req { position: relative; }
+.q-more-pop button.mx-req small { color: var(--c); font-weight: 650; }
+.q-more-pop .mx-ask { margin-left: auto; flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 12%, var(--card)); color: var(--c); }
+.q-play .es-q { margin: 18px auto 4px; max-width: 560px; padding: 14px 16px; border: 1px solid var(--ln); border-radius: 16px; background: var(--card); text-align: left; }
+.q-play .es-q > small, .q-play .es-src small { display: block; font-size: 11.5px; font-weight: 700; color: var(--ink2); }
+.q-play .es-q > b { display: block; margin-top: 4px; font-size: 16px; font-weight: 700; line-height: 1.4; color: var(--ink); }
+.q-play .es-src { display: block; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--ln); font-size: 13.5px; font-style: italic; color: var(--ink); }
+.q-play .es-src small { font-style: normal; margin-bottom: 2px; }

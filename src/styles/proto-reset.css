@@ -1,0 +1,4 @@
+/* Đứng ĐẦU chuỗi CSS. Chặn `height: var(--input-height)` mặc định của Obsidian cho <button>.
+   Độ ưu tiên cố ý thấp (sau khi build: .pie-study-root .ob button = 0,2,1): thắng Obsidian (0,1,1) nhưng thua mọi luật thành phần cùng hoặc cao hơn nằm SAU nó.
+   Luật cũ `button:not(.q-node):not(.qb){height:auto}` có độ ưu tiên 0,3,1 nên đè luôn mọi `height` của thành phần (tab, công tắc, nút trang bài, nút bảng nguồn). */
+.ob button:where(:not(.q-node):not(.qb)) { height: auto; }   /* :where() không cộng độ ưu tiên; .q-node và .qb tự khai height */

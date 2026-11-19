@@ -1,0 +1,53 @@
+/* Keo nối prototype vào Obsidian (không phải thiết kế mới): view chiếm trọn leaf, chặn style nút/ô nhập mặc định của Obsidian. */
+.ob { height: 100%; display: flex; }
+.ob > .desk, .ob > .phone, .ob > .mid { flex: 1; min-width: 0; display: flex; }
+.ob .phone { width: auto; height: auto; border-radius: 0; padding: 0; background: none; box-shadow: none; }
+.view { min-width: 0; }
+.qd { flex: 1; min-width: 0; }
+button, select, input, textarea { box-shadow: none; margin: 0; }
+button { white-space: normal; }   /* Obsidian đặt nowrap cho nút → chữ dài bị cắt; prototype (trình duyệt) là normal */
+.ps-calm *, .ps-calm *::before, .ps-calm *::after { animation: none !important; transition: none !important; }
+.q-more-pop button { justify-content: flex-start; text-align: left; width: 100%; height: auto; }   /* Obsidian căn giữa nội dung nút */
+.q-more-pop button span { align-items: flex-start; }
+.q-tabbar button { height: auto; box-shadow: none; border: 0; background: none; padding: 0; }   /* chặn kiểu nút của Obsidian */
+.opt { justify-content: flex-start; height: auto; }   /* Obsidian căn giữa nội dung nút */
+/* Các dạng quest mà prototype chưa vẽ: dùng lại khối .opt / .order-it của prototype, chỉ thêm bố cục */
+.q-match { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; } .q-match > div { display: flex; flex-direction: column; }
+.q-play .opt.sel { background: var(--t); outline: 3px solid var(--c); }
+.q-play .opt:disabled { cursor: default; }
+.q-flash { display: grid; gap: 8px; margin-bottom: 16px; } .q-flash .order-it { display: flex; gap: 10px; align-items: baseline; } .q-flash small { color: var(--ink2); font-weight: 500; }
+.q-bets { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.q-img { position: relative; margin: 0 0 16px; border: 2.5px solid var(--ol); border-radius: 16px; overflow: hidden; background: var(--card); }
+.q-img img { display: block; width: 100%; height: auto; }
+.q-occl { position: absolute; background: var(--gold); border: 2.5px solid var(--ol); border-radius: 6px; }
+.q-frame { width: 100%; border: 3px solid var(--ol); border-radius: 18px; box-shadow: 0 5px 0 var(--ol); background: var(--card); }
+.q-timer b { font-variant-numeric: tabular-nums; margin-left: 2px; }
+
+/* Huy hiệu: thẻ nổi khi mở huy hiệu mới (khoảnh khắc thưởng, spec 7.2b) — cùng nét bd-sheet của prototype */
+.bd-toast { position: absolute; left: 50%; top: 84px; transform: translateX(-50%); z-index: 60; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 14px; padding: 16px 22px 14px; background: var(--card, #FFFDF8); color: var(--ink, #17223F); border: 2.5px solid var(--ol, #17223F); border-radius: 22px; box-shadow: 0 5px 0 var(--ol, #17223F); animation: bd-toast-in .45s cubic-bezier(.34, 1.56, .64, 1); pointer-events: none; max-width: calc(100% - 32px); }
+.bd-toast span { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.bd-toast b { font-size: 13px; font-weight: 800; }
+.bd-toast small { flex-basis: 100%; text-align: center; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2, #56607A); }
+@keyframes bd-toast-in { from { opacity: 0; transform: translate(-50%, -12px) scale(.85); } }
+.ps-calm .bd-toast { animation: none; }
+/* Lỗi sai: link bài trong dòng — Obsidian gạch chân mọi <a>, prototype thì không (a không href) */
+.qd .mk-meta a { text-decoration: none; }
+/* Kết quả quest trên điện thoại: Pie Bot góc che dòng "Luyện thêm bộ dễ hơn" → ẩn khi có hai dòng phụ */
+.phone .q-play:has(.qr .td-more) .mascot-slot.corner { display: none; }
+/* Thẻ khối lỗi (7.8): cột phải hẹp hơn nút chữ dài → cho nút xuống dòng thay vì đẩy lưới tràn ra ngoài. */
+.q-lec .lb-broken { grid-template-columns: minmax(0, 1fr); }
+.q-lec .lb-broken .btn { white-space: normal; text-align: left; height: auto; min-height: 36px; padding-top: 6px; padding-bottom: 6px; }
+/* Công tắc trong Cài đặt: <button> nên CSS nút của Obsidian (padding, height, box-shadow) đè lên → tự khai đủ; có trạng thái tắt. */
+.ob .toggle.toggle { box-sizing: border-box; display: inline-block; width: 44px; height: 24px; min-height: 0; min-width: 0; padding: 0; margin: 0; border: 0; border-radius: 99px; background: var(--ln, var(--hair)); box-shadow: none; position: relative; flex: none; cursor: pointer; transition: background .15s; }
+.ob .toggle.toggle.on { background: var(--ok, var(--pa-accent)); }
+.ob .toggle.toggle::after { content: ""; position: absolute; top: 50%; left: 3px; right: auto; width: 18px; height: 18px; margin: 0; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transform: translateY(-50%); transition: left .15s; }
+.ob .toggle.toggle.on::after { left: 23px; }
+.ob .toggle.toggle:focus-visible { outline: 2px solid var(--c, var(--pa-accent)); outline-offset: 2px; }
+/* Cột phải bài giảng (7b, nghiệm thu UI): tiêu đề thẻ cách đường kẻ đều trên/dưới; dòng mục lục tự cao theo nội dung;
+   thẻ "chưa bám note" là cảnh báo (icon ink2, chữ đậm vừa) cả nền tối; nút trong thẻ khối lỗi là nút chính. */
+.ob.d2 .q-lec .rail > .eyebrow { padding: 13px 18px 11px; }
+.q-lec .lb-go { height: auto; min-height: 0; }
+.q-lec .lq.no > svg, .ob[data-theme="dark"] .q-lec .lq.no > svg { color: var(--ink2); }
+.q-lec .lq.no p { font-weight: 600; }
+.q-lec .lb-broken .btn { background: var(--c); color: #fff; border: 0; box-shadow: none; }
+.q-lec .lb-broken .btn:hover { background: var(--c); filter: brightness(.94); }

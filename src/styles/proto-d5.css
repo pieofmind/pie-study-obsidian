@@ -1,0 +1,48 @@
+/* PROTOTYPE — Đợt 5: vạch độ vững ở lưới 17 kiểu hiểu, khối Nhịp học ở Tổng quan, nút kiểm tra nhanh. Theo D2: phẳng, viền mảnh, màu đặc. */
+
+/* ── Độ vững: 3 nấc ở mép phải mỗi ô ── */
+.qd .tokgrid .tok .tk-m { margin-left: auto; display: inline-flex; align-items: flex-end; gap: 2px; height: 14px; flex: none; }
+.qd .tokgrid .tok .tk-m i { width: 4px; border-radius: 2px; background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.qd .tokgrid .tok .tk-m i:nth-child(1) { height: 6px; } .qd .tokgrid .tok .tk-m i:nth-child(2) { height: 10px; } .qd .tokgrid .tok .tk-m i:nth-child(3) { height: 14px; }
+.qd .tokgrid .tok .tk-m.l1 i:nth-child(1) { background: var(--no); }
+.qd .tokgrid .tok .tk-m.l2 i:nth-child(-n+2) { background: var(--gold-d); }
+.qd .tokgrid .tok .tk-m.l3 i { background: var(--ok); }
+.qd .tokgrid .tok .tk-tip { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--ln); }
+.ob[data-theme="dark"] .qd .tokgrid .tok .tk-m.l2 i:nth-child(-n+2) { background: var(--gold); }
+
+/* ── Nhịp học ── */
+.qd .rh { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 12px; }
+.qd .rh-card { background: var(--card); border: 1px solid var(--ln); border-radius: 20px; padding: 16px 18px 14px; display: flex; flex-direction: column; min-width: 0; }
+.qd .rh-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.qd .rh-top b { font-size: 15.5px; font-weight: 800; } .qd .rh-top small { font-size: 12.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; }
+.qd .rh-bars { display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 4px; flex: 1; }
+.qd .rh-col { display: grid; grid-template-rows: 14px 64px 16px 14px; justify-items: center; align-items: end; gap: 3px; min-width: 0; }
+.qd .rh-col.wk { border-left: 1px dashed var(--ln); margin-left: -2.5px; padding-left: 1.5px; }
+.qd .rh-n { font-size: 10.5px; font-weight: 700; color: var(--ink2); line-height: 1; }
+.qd .rh-bar { width: 100%; max-width: 20px; height: 100%; display: flex; align-items: flex-end; background: var(--bg2); border-radius: 6px; overflow: hidden; }
+.qd .rh-bar i { display: block; width: 100%; background: color-mix(in srgb, var(--c) 55%, var(--card)); border-radius: 6px 6px 0 0; }
+.qd .rh-col.now .rh-bar i { background: var(--c); } .qd .rh-col.now .rh-n, .qd .rh-col.now small { color: var(--ink); font-weight: 800; }
+.qd .rh-col em { font-style: normal; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 99px; background: var(--gold); color: #17223F; font-size: 10.5px; font-weight: 800; line-height: 16px; text-align: center; }
+.qd .rh-col em.z { background: transparent; }
+.qd .rh-col small { font-size: 10.5px; font-weight: 600; color: var(--ink3); line-height: 1; }
+.qd .rh-leg { display: flex; align-items: center; gap: 6px 12px; flex-wrap: wrap; margin-top: 12px; font-size: 11.5px; font-weight: 600; color: var(--ink2); }
+.qd .rh-leg span { display: inline-flex; align-items: center; gap: 5px; } .qd .rh-leg .r { margin-left: auto; }
+.qd .rh-leg i { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.qd .rh-leg i.c { background: var(--c); } .qd .rh-leg i.g { background: var(--gold); border-radius: 99px; }
+.qd .rh-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; flex: 1; align-content: center; }
+.qd .rh-grid i { aspect-ratio: 1; max-height: 16px; width: 100%; max-width: 16px; justify-self: center; border-radius: 4px; }
+.qd .rh-grid i.x { background: transparent; }
+.qd .rh-grid i.l0, .qd .rh-leg i.l0 { background: var(--bg2); }
+.qd .rh-grid i.l1, .qd .rh-leg i.l1 { background: color-mix(in srgb, var(--c) 30%, var(--card)); }
+.qd .rh-grid i.l2, .qd .rh-leg i.l2 { background: color-mix(in srgb, var(--c) 62%, var(--card)); }
+.qd .rh-grid i.l3, .qd .rh-leg i.l3 { background: var(--c); }
+.qd .rh-card:last-child .rh-leg { gap: 4px; } .qd .rh-card:last-child .rh-leg span:first-child { margin-right: 2px; } .qd .rh-card:last-child .rh-leg i + span { margin-left: 2px; }
+.phone .qd .rh { grid-template-columns: minmax(0, 1fr); }
+.phone .qd .rh-card { padding: 14px 14px 12px; } .phone .qd .rh-bars { gap: 3px; }
+.phone .qd .rh-leg .r { margin-left: 0; flex-basis: 100%; } .phone .qd .rh-card:last-child .rh-leg .r { flex-basis: auto; margin-left: auto; }
+.phone .qd .rh-grid i { max-height: 18px; max-width: 18px; }
+
+/* ── Kiểm tra nhanh ── */
+.q-pop .qb.tk-out { margin-top: 10px; height: 40px; }
+.ob.d2 .q-pop .qb.tk-out { border: 1px solid var(--d2-line); box-shadow: none; background: transparent; }
+.ob.d2 .q-pop .qb.tk-out:hover { transform: none; background: color-mix(in srgb, var(--card) 70%, var(--bg)); }

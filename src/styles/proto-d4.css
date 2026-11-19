@@ -1,0 +1,90 @@
+/* PROTOTYPE — Đợt 4 "Vòng sửa lỗi": nút Phiên hôm nay, màn phiên, thẻ Xong hôm nay, màn Lỗi sai.
+   Vẽ theo D2: chỉ nút chính giữ viền mực + gờ; mọi bề mặt khác phẳng, viền mảnh. */
+.qd { --ln: var(--d2-line, var(--hair)); }
+
+/* ── Tổng quan: Phiên hôm nay là điểm nhấn duy nhất, hai nút cũ thành nút phụ ── */
+.qd .ov-act.td { background: var(--c); color: #fff; }
+.qd .ov-act.td small { color: #fff; opacity: .9; white-space: normal; }
+.qd .ov-act.td .ov-act-ic { background: #fff; color: var(--d); }
+.qd .ov-act.td .ov-act-ic svg { fill: currentColor; stroke-width: 1.5; }
+.ob.d2 .qd .ov-acts.has-td .ov-act:not(.td) { background: var(--card); color: var(--ink); border: 1px solid var(--d2-line); box-shadow: none; padding: 9px 14px 9px 10px; }
+.ob.d2 .qd .ov-acts.has-td .ov-act:not(.td):hover { transform: none; background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
+.ob.d2 .qd .ov-acts.has-td .ov-act:not(.td) b { font-size: 15px; font-weight: 800; }
+.ob.d2 .qd .ov-acts.has-td .ov-act:not(.td) small { color: var(--ink2); opacity: 1; }
+.ob.d2 .qd .ov-acts.has-td .ov-act:not(.td) .ov-act-ic { width: 36px; height: 36px; border: 0; border-radius: 10px; }
+.ob.d2 .qd .ov-acts.has-td .ov-act.due .ov-act-ic { background: var(--gold); color: #17223F; }
+.ob.d2 .qd .ov-acts.has-td .ov-act:not(.td) { grid-template-columns: 36px 1fr 20px; }
+.qd .ov-td-flat { display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: center; padding: 12px 14px; border: 1px solid var(--ln); border-radius: 16px; background: var(--card); }
+.qd .ov-td-flat > svg { width: 36px; height: 36px; padding: 8px; border-radius: 10px; background: var(--bg2); color: var(--ink2); stroke-width: 3; }
+.qd .ov-td-flat.ok > svg { background: var(--ok-t); color: var(--ok-d); }
+.qd .ov-td-flat b { display: block; font-size: 15.5px; font-weight: 800; } .qd .ov-td-flat small { display: block; font-size: 12.5px; color: var(--ink2); font-weight: 600; }
+
+/* ── Bài học: dòng câu sai đang mở ── */
+.qd .mk-tline { display: flex; align-items: center; gap: 10px; width: 100%; margin-top: 10px; padding: 11px 14px; border: 1px solid var(--ln); border-radius: 14px; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.qd .mk-tline > svg { color: var(--no-d); flex: none; } .qd .mk-tline span { flex: 1; min-width: 0; } .qd .mk-tline b { font-weight: 800; }
+.qd .mk-tline em { font-style: normal; font-weight: 700; font-size: 13px; color: var(--ink2); display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+.qd .mk-tline:hover em { color: var(--ink); }
+
+/* ── Phiên hôm nay ── */
+.q-play .td-phase { display: flex; gap: 8px; align-items: baseline; justify-content: center; font-size: 13px; font-weight: 600; color: var(--ink2); margin: 0 0 14px; }
+.q-play .td-phase b { color: var(--ink); font-weight: 800; }
+.q-foot .td-fate { display: block; margin-top: 4px; font-weight: 600; opacity: .85; font-size: 13.5px; }
+.q-play .td-done .td-stats { display: flex; gap: 10px; justify-content: center; margin: 18px 0 14px; }
+.q-play .td-done .td-stats span { flex: 1 1 0; max-width: 150px; background: var(--card); border: 1px solid var(--ln); border-radius: 16px; padding: 12px 8px 11px; font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+.q-play .td-done .td-stats b { display: block; font-size: 28px; font-weight: 900; letter-spacing: -.03em; line-height: 1.1; color: var(--ink); }
+.q-play .td-done .acts { margin-top: 18px; }
+.q-play .td-more { margin-top: 26px; display: grid; gap: 8px; text-align: left; }
+.q-play .td-more > small { font-size: 13px; font-weight: 600; color: var(--ink2); }
+.q-play .td-row { display: grid; grid-template-columns: 36px 1fr 18px; gap: 12px; align-items: center; padding: 10px 14px 10px 10px; border: 1px solid var(--ln); border-radius: 14px; background: var(--card); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.q-play .td-row:hover { background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
+.q-play .td-row .ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--bg2); color: var(--ink); }
+.q-play .td-row > span:nth-child(2) { min-width: 0; }
+.q-play .td-row b { display: block; font-size: 14.5px; font-weight: 800; }
+.q-play .td-row small { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.q-play .td-row > svg { color: var(--ink2); }
+
+/* ── Màn Lỗi sai ── */
+.qd .mk-head { display: grid; grid-template-columns: 1fr auto; gap: 14px 24px; align-items: end; margin: 14px 0 22px; }
+.qd .mk-head h1.t { font-size: 40px; font-weight: 900; letter-spacing: -.035em; margin: 0 0 6px; }
+.qd .mk-head .sub { margin: 0; color: var(--ink2); font-weight: 500; max-width: 46ch; }
+.qd .mk-cta { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.qd .mk-cta .qb { background: var(--c); color: #fff; }
+.qd .mk-count { font-size: 13.5px; font-weight: 600; color: var(--ink2); display: inline-flex; align-items: baseline; gap: 5px; }
+.qd .mk-count b { font-size: 22px; font-weight: 900; letter-spacing: -.02em; color: var(--ink); }
+.qd .mk-count i { width: 1px; height: 14px; background: var(--ln); margin: 0 6px; align-self: center; }
+.qd .mk-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.qd .mk-chip { height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--ln); background: transparent; color: var(--ink2); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.qd .mk-chip i { font-style: normal; font-weight: 800; opacity: .7; }
+.qd .mk-chip.on { background: var(--ink); border-color: var(--ink); color: var(--card); }
+.qd .mk-filters select { height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--ln) !important; box-shadow: none; background: var(--card); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; }
+.qd .mk-list { display: grid; gap: 10px; }
+.qd .mk-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 18px; align-items: center; padding: 13px 14px 13px 16px; background: var(--card); border: 1px solid var(--ln); border-radius: 16px; }
+.qd .mk-q { margin: 0 0 8px; font-size: 15.5px; font-weight: 700; line-height: 1.35; }
+.qd .mk-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; font-size: 12.5px; font-weight: 600; color: var(--ink2); }
+.qd .mk-meta a { color: var(--ink); cursor: pointer; } .qd .mk-meta a:hover { text-decoration: underline; }
+.qd .mk-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.qd .mk-st { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.qd .mk-st.ready { background: color-mix(in srgb, var(--gold) 38%, var(--card)); color: var(--ink); }
+.qd .mk-st.wait { background: var(--bg2); color: var(--ink2); }
+.qd .mk-st.ok { background: var(--ok-t); color: var(--ok-d); }
+.qd .mk-st.gone { border: 1px dashed var(--ink3); color: var(--ink2); }
+.qd .mk-acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.qd .mk-acts .btn { height: 32px; padding: 0 11px; border-radius: 10px; font-size: 13px; text-transform: none; letter-spacing: 0; font-weight: 700; border: 1px solid var(--ln); box-shadow: none; }
+.qd .mk-acts .btn:hover { transform: none; box-shadow: none; background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
+.qd .mk-row.cleared .mk-q { color: var(--ink2); font-weight: 600; }
+.qd .mk-row.gone { background: transparent; border-style: dashed; } .qd .mk-row.gone .mk-q { color: var(--ink2); }
+.qd .mk-empty { display: grid; justify-items: center; gap: 4px; padding: 44px 16px; border: 1px dashed var(--ink3); border-radius: 16px; text-align: center; color: var(--ink2); }
+.qd .mk-empty svg { color: var(--ok-d); stroke-width: 3; } .qd .mk-empty b { color: var(--ink); font-size: 15.5px; } .qd .mk-empty small { font-size: 13px; }
+.ob[data-theme="dark"] .qd .mk-st.ok, .ob[data-theme="dark"] .qd .ov-td-flat.ok > svg { background: color-mix(in srgb, var(--ok) 22%, var(--card)); color: #7FE0B4; }
+.ob[data-theme="dark"] .qd .mk-tline > svg { color: #FF8A84; }
+
+/* ── khổ vừa và điện thoại ── */
+.phone .qd .mk-head { grid-template-columns: 1fr; margin: 10px 0 16px; } .phone .qd .mk-head h1.t { font-size: 28px; }
+.phone .qd .mk-cta { align-items: stretch; } .phone .qd .mk-cta .qb { width: 100%; }
+.phone .qd .mk-filters select { flex: 1 1 0; min-width: 0; } .phone .qd .mk-filters > span { flex: 0 0 100% !important; height: 0; }
+.phone .qd .mk-row { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; }
+.phone .qd .mk-side { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.mid .qd .mk-head h1.t { font-size: 34px; }
+.phone .qd .mk-acts .btn { flex: 1 1 auto; justify-content: center; }
+.phone .q-play .td-done .td-stats span { padding: 10px 4px; } .phone .q-play .td-done .td-stats b { font-size: 24px; }
+.phone .qd .mk-tline { flex-wrap: wrap; } .phone .qd .mk-tline em { width: 100%; padding-left: 28px; }

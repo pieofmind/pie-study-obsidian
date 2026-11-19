@@ -1,0 +1,192 @@
+/* PROTOTYPE — D2 "tĩnh + một điểm nhấn". Giữ ADN kiểu D (viền mực + gờ đặc) nhưng CHỈ cho thứ bấm được và quan trọng nhất
+   (thẻ Bài kế tiếp, nút chính, nút bài trên bản đồ). Mọi bề mặt khác: phẳng, viền mảnh, không gờ.
+   Màu nhóm chỉ còn là điểm (số tầng, chấm, nút đã học) — không phủ cả khối. Chữ: 4 cỡ, bớt nhãn viết hoa. Bật bằng ?polish=d2. */
+.ob.d2 { --d2-line: color-mix(in srgb, var(--ink, #17223F) 12%, transparent); }
+.ob.d2 .qd { --d2-line: color-mix(in srgb, var(--ink) 12%, transparent); }
+
+/* ── thanh trên: một hàng nhẹ, không viền dày ── */
+.ob.d2 .qbar { height: 60px; border-bottom: 1px solid var(--d2-line); gap: 10px; }
+.ob.d2 .q-dom { border: 1px solid var(--d2-line); box-shadow: none; border-radius: 12px; font-size: 14.5px; background: var(--bg); }
+.ob.d2 .q-stat { border: 0; background: transparent; font-size: 13.5px; padding: 0 6px; height: 30px; }
+.ob.d2 .q-nav { border: 0; background: transparent; gap: 2px; padding: 0; }
+.ob.d2 .q-nav button { width: 36px; height: 34px; border-radius: 10px; }
+.ob.d2 .q-nav button.on { background: var(--ink); color: var(--card); }
+.ob.d2 .q-more-btn { border: 0; background: transparent; width: 38px; height: 36px; }
+.ob.d2 .q-more-btn.on { background: var(--ink); color: var(--card); }
+.ob.d2 .q-motion { display: none; }
+
+/* ── nhãn nhỏ: chữ thường, không giãn, không xoay sticker ── */
+.ob.d2 .q-kick, .ob.d2 .q-card > small, .ob.d2 .bd-kick, .ob.d2 .q-hero-top small {
+  text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 600; transform: none; box-shadow: none; }
+
+/* ── banner tầng: bỏ khối màu đặc → dòng tiêu đề tĩnh, số tầng màu nhóm là điểm nhấn duy nhất ── */
+.ob.d2 .q-banner { background: var(--card); color: var(--ink); border: 1px solid var(--d2-line); box-shadow: 0 8px 20px -14px rgba(23,34,63,.35); border-radius: 18px;
+  padding: 12px 14px 12px 16px; }   /* đặc + viền mảnh: dính đầu khi cuộn mà không lộ đường ray mờ phía sau */
+.ob.d2 .q-no { color: var(--c); -webkit-text-stroke: 0; opacity: 1; font-size: 44px; margin: 0 4px 0 0; letter-spacing: -.04em; }
+.ob.d2 .q-banner b { font-size: 21px; color: var(--ink); }
+.ob.d2 .q-banner small { color: var(--ink2); opacity: 1; font-size: 13.5px; margin: 2px 0 8px; }
+.ob.d2 .q-banner .q-kick { display: none; }
+.ob.d2 .q-banner .q-seg i { height: 6px; border: 0; background: var(--bg2); border-radius: 99px; }
+.ob.d2 .q-banner .q-seg i.on { background: var(--c); }
+.ob.d2 .q-banner .qb { background: transparent; box-shadow: none; border: 1px solid var(--d2-line); color: var(--ink); height: 36px; }
+
+/* ── đường ray + nhãn: nhẹ hơn để nút bài nổi lên ── */
+.ob.d2 .q-road .base path { stroke-width: 16; }
+.ob.d2 .q-road .dash path { opacity: .18; }
+.ob.d2 .q-lab b { font-size: 14.5px; font-weight: 650; }
+.ob.d2 .q-lab small { font-size: 12.5px; }
+.ob.d2 .q-doo { opacity: .35; }
+
+/* ── cột phải: chỉ thẻ Bài kế tiếp giữ viền mực + gờ; thẻ khác phẳng ── */
+.ob.d2 .q-card:not(.q-hero) { border: 1px solid var(--d2-line); box-shadow: none; border-radius: 20px; background: var(--card); }
+.ob.d2 .q-card.q-hero { border-radius: 24px; }
+.ob.d2 .q-card > b { font-size: 20px; }
+.ob.d2 .q-li .sq { border: 0; border-radius: 10px; width: 32px; height: 32px; }
+.ob.d2 .q-li + .q-li { border-top: 1px solid var(--d2-line); }
+.ob.d2 .qb.line { border: 1px solid var(--d2-line); box-shadow: none; }
+
+/* ── Tổng quan ── */
+.ob.d2 .qd .ov-now { border: 0; box-shadow: none; background: transparent; padding: 8px 4px 0; }
+.ob.d2 .qd .ov-now h1.t { font-size: 40px; letter-spacing: -.035em; }
+.ob.d2 .qd .ov-now .sub { display: none; }   /* bỏ chữ kỹ thuật "dashboard-hoc-tap.base" khỏi mặt người dùng */
+.ob.d2 .qd .ov-act.go { background: var(--card); color: var(--ink); border: 1px solid var(--d2-line); box-shadow: none; }
+.ob.d2 .qd .ov-act.go small { color: var(--ink2); opacity: 1; }
+.ob.d2 .qd .ov-act.go .ov-act-ic { background: var(--c); color: #fff; border: 0; }
+.ob.d2 .qd .ov-sum { background: var(--card); color: var(--ink); border: 1px solid var(--d2-line); box-shadow: none; border-radius: 22px; }
+.ob.d2 .qd .ov-sum * { color: inherit; }
+.ob.d2 .qd .ov-sum small, .ob.d2 .qd .ov-sum span { color: var(--ink2); }
+.ob.d2 .qd .ov-mix { height: 10px; } .ob.d2 .qd .ov-mix i { border: 0; border-radius: 99px; }
+.ob.d2 .qd .ov-h { font-size: 18px; font-weight: 800; margin: 36px 0 10px; }
+.ob.d2 .qd .ov-dom { border: 1px solid var(--d2-line); box-shadow: none; border-radius: 16px; }
+.ob.d2 .qd .ov-dom:hover { transform: none; background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
+.ob.d2 .qd .ov-tag { border: 0; width: 4px; border-radius: 99px; }
+.ob.d2 .qd .ov-track i:not(.basic):not(.master):not(.nx) { box-shadow: none; background: var(--bg2); width: 7px; height: 7px; border-radius: 99px; margin-top: 4px; }   /* ô chưa học = chấm nhỏ, bớt rối */
+.ob.d2 .qd .ov-track i.basic, .ob.d2 .qd .ov-track i.master { box-shadow: none; border-radius: 4px; }
+.ob.d2 .qd .ov-grp { background: transparent; padding: 0; }
+.ob.d2 .qd .ov-chip { border: 1px dashed var(--d2-line); box-shadow: none; }
+.ob.d2 .qd .ov-due { border: 1px solid var(--d2-line); box-shadow: none; }
+.ob.d2 .qd .ov-due .ov-tr { border-top: 1px solid var(--d2-line); }
+
+/* ═════════ D2 cho các màn còn lại ═════════
+   Luật chung: bề mặt (thẻ, hàng, ô) = phẳng + viền mảnh; thứ BẤM để làm việc chính (đáp án, 4 nút chấm, nút chính, ô nhập) giữ viền mực + gờ;
+   nhãn viết hoa → chữ thường; màu nhóm chỉ là điểm nhấn. */
+.ob.d2 { --d2-flat: 1px solid var(--d2-line); }
+
+/* nút phụ (.btn thường) phẳng; nút chính (.btn.pri, .qb.y, .qb.w) giữ gờ — mọi nút bỏ chữ hoa */
+.ob.d2 .qd .btn, .ob.d2 .qb, .ob.d2 .q-tip, .ob.d2 .q-play .flip-hint .btn, .ob.d2 .q-play .essay .btn.pri, .ob.d2 .q-play .sumry .btn { text-transform: none; letter-spacing: 0; font-size: 14px; }
+.ob.d2 .qd .btn:not(.pri):not(.ghost) { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .qd .btn:not(.pri):not(.ghost):hover { transform: none; background: color-mix(in srgb, var(--card) 70%, var(--bg)); }
+.ob.d2 .qb.o, .ob.d2 .qb.sm { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .qd .pill, .ob.d2 .q-play .pill { border: 0; text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 700; }
+.ob.d2 .qd .pill.tok, .ob.d2 .q-play .pill.tok { text-transform: none; font-family: ui-monospace, "SF Mono", monospace; font-size: 11.5px; font-weight: 600; }
+
+/* ── Bài học (topic): đầu trang thành thẻ trắng, màu nhóm ở vòng x/17 + nhãn trạng thái ── */
+.ob.d2 .qd .t-head { background: var(--card); color: var(--ink); border: var(--d2-flat); box-shadow: none; border-radius: 24px; }
+.ob.d2 .qd .t-head h1.t { color: var(--ink); font-size: 32px; letter-spacing: -.03em; }
+.ob.d2 .qd .t-head .sub { color: var(--ink2); opacity: 1; }
+.ob.d2 .qd .t-head .btn.ghost { color: var(--ink2); } .ob.d2 .qd .t-head .btn.ghost:hover { background: var(--bg); }
+.ob.d2 .qd .t-head .btn.pri { background: var(--c); color: #fff; }
+.ob.d2 .qd .t-head .ring .bg { stroke: var(--bg2); } .ob.d2 .qd .t-head .ring .fg { stroke: var(--c); }
+.ob.d2 .qd .t-head .ring .lbl b, .ob.d2 .qd .t-head .ring .lbl small { color: var(--ink); }
+.ob.d2 .qd .t-head .nb-meta a, .ob.d2 .qd .t-head .nb-meta span { color: var(--ink2); }
+.ob.d2 .qd .page select { border: var(--d2-flat) !important; box-shadow: none; }
+.ob.d2 .qd .note-call { border: 0; box-shadow: none; border-radius: 14px; }
+/* 17 kiểu hiểu: hàng phẳng, đã đạt = chấm màu, không còn 17 viên gạch nổi */
+.ob.d2 .qd .tokg h6 { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 700; }
+.ob.d2 .qd .tokgrid .tok { border: var(--d2-flat); box-shadow: none; height: 44px; }
+.ob.d2 .qd .tokgrid .tok:hover { transform: none; }
+.ob.d2 .qd .tokgrid .tok.on { background: color-mix(in srgb, var(--c) 10%, var(--card)); border-color: color-mix(in srgb, var(--c) 35%, transparent); }
+.ob.d2 .qd .tokgrid .tok .ck { border: 1.5px solid var(--d2-line); }
+.ob.d2 .qd .tokgrid .tok.on .ck { border: 0; }
+.ob.d2 .qd .tokgrid .tok .tip { border: var(--d2-flat); box-shadow: 0 12px 28px -12px rgba(23,34,63,.35); }
+.ob.d2 .qd .tabs { border-bottom: var(--d2-flat); }
+.ob.d2 .qd .tabs button { text-transform: none; letter-spacing: 0; font-size: 14px; font-weight: 700; }
+.ob.d2 .qd .tabs button.on::after { height: 3px; bottom: -2px; }
+.ob.d2 .qd .kv dt { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 700; }
+.ob.d2 .qd .tokbars .r .bars, .ob.d2 .q-play .tokbars .r .bars { border: 0; height: 10px; border-radius: 99px; }
+
+/* ── Sổ học ── */
+.ob.d2 .qd .nb-sec { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .qd .nb-gap { border: 0; box-shadow: none; }
+.ob.d2 .qd .nb-big { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .qd .nb-big header em { border: 0; box-shadow: none; text-transform: none; letter-spacing: 0; }
+.ob.d2 .qd .nb-big li::before { border: 0; }
+.ob.d2 .nb-big-ic { border: 0; box-shadow: none; }
+.ob.d2 .q-mini { box-shadow: none; }
+
+/* ── Cài đặt ── */
+.ob.d2 .qd .set-h { text-transform: none; letter-spacing: 0; font-size: 14px; color: var(--ink); }
+.ob.d2 .qd .set-row { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .qd .set-row input[type=text] { border: var(--d2-flat); }
+.ob.d2 .qd .dotst { border: 0; }
+.ob.d2 .qd .toggle { border: 0; } .ob.d2 .qd .toggle::after { border: 0; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.ob.d2 .qd .page > .card, .ob.d2 .qd .how .card { border: var(--d2-flat); box-shadow: none; }
+
+/* ── Lộ trình mới / vault trống: ô "Muốn học gì?" là điểm nhấn duy nhất ── */
+.ob.d2 .qd .empty h1.t { font-size: 42px; letter-spacing: -.035em; }
+.ob.d2 .qd .chip { border: var(--d2-flat); box-shadow: none; font-weight: 600; }
+.ob.d2 .qd .how .n { border: 0; }
+
+/* ── Màn luyện tập toàn khung (Ôn thẻ, Quest, Tự luận) ── */
+.ob.d2 .q-play .focus-top { border-bottom: var(--d2-flat); height: 62px; }
+.ob.d2 .q-play .focus-top .prog { border: 0; height: 10px; border-radius: 99px; }
+.ob.d2 .q-play .qz .qq, .ob.d2 .q-play .essay .qq { font-size: 28px; letter-spacing: -.03em; }
+.ob.d2 .q-play .opt .k { border: 1.5px solid var(--ol); }                 /* đáp án vẫn giữ viền mực + gờ: đó là thứ bấm chính */
+.ob.d2 .q-play .order-it { box-shadow: 0 2px 0 var(--ol); border-width: 2px; }
+.ob.d2 .q-play .order-slot { border-width: 1.5px; }
+.ob.d2 .q-foot { border-top: var(--d2-flat); }
+.ob.d2 .q-foot-ic { border: 0; box-shadow: none; border-radius: 18px; }
+.ob.d2 .q-play .flash .face { box-shadow: 0 24px 48px -28px rgba(23,34,63,.45); border: var(--d2-flat); }
+.ob.d2 .q-play .rate button b { text-transform: none; letter-spacing: 0; }
+.ob.d2 .q-play .essay textarea { border: 1.5px solid var(--d2-line); box-shadow: none; }
+.ob.d2 .q-play .essay textarea:focus { border-color: var(--c); outline: 3px solid color-mix(in srgb, var(--c) 18%, transparent); }
+.ob.d2 .q-play .step .d { border: 0; }
+.ob.d2 .q-play .card.raised { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .q-play .note-call { border: 0; }
+
+/* ── Bài giảng ── */
+.ob.d2 .q-lec .lect { background-image: none; }
+.ob.d2 .q-lec .lect iframe { border: var(--d2-flat); box-shadow: 0 24px 48px -28px rgba(23,34,63,.45); }
+.ob.d2 .q-lec .rail > .eyebrow { border: 0; box-shadow: none; text-transform: none; letter-spacing: 0; }
+.ob.d2 .q-lec .rail > .eyebrow + div { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .q-lec .note-call.info { border: 0; box-shadow: none; }
+
+/* ── Bảng bật trên bản đồ + nút Thêm ── */
+.ob.d2 .q-pop { border: var(--d2-flat); box-shadow: 0 20px 40px -20px rgba(23,34,63,.45); }
+.ob.d2 .q-pop::before { border-color: var(--d2-line); }
+.ob.d2 .q-pop small { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.ob.d2 .q-more-pop { border: var(--d2-flat); box-shadow: 0 20px 40px -20px rgba(23,34,63,.45); }
+.ob.d2 .q-more-pop > small { text-transform: none; letter-spacing: 0; font-size: 12.5px; }
+
+/* ── Huy hiệu: khối trang phẳng, huy hiệu (đã mở) giữ gờ ── */
+.ob.d2 .bd-head, .ob.d2 .bd-card, .ob.d2 .bd-fam { border: var(--d2-flat); box-shadow: none; }
+.ob.d2 .bd-kick { text-transform: none; letter-spacing: 0; font-size: 13px; }
+.ob.d2 .bd-prog { border: 0; height: 7px; } .ob.d2 .bd-prog i { border: 0; }
+.ob.d2 .bd-dot { border: 0; }
+.ob.d2 .bd-sheet { border: var(--d2-flat); box-shadow: 0 30px 60px -30px rgba(23,34,63,.55); }
+.ob.d2 .bd-rtag { border: 0; text-transform: none; letter-spacing: 0; font-size: 12px; }
+
+/* ── Menu dưới (điện thoại): thanh phẳng mảnh, mục đang chọn vẫn là ô teal ── */
+.ob.d2 .phone .tabbar.q-tabbar { border: var(--d2-flat); box-shadow: 0 16px 32px -18px rgba(23,34,63,.45); }
+.ob.d2 .q-tabbar button.on i.q-tic { border: 0; box-shadow: none; transform: none; }
+
+/* chế độ tối: viền mảnh sáng lên một chút để vẫn thấy khối */
+.ob.d2[data-theme="dark"] .qd, .ob.d2[data-theme="dark"] { --d2-line: rgba(255,255,255,.12); }
+
+/* đầu trang (Bài học, Sổ học): thẻ trắng trên nền kem quá nhạt → nền pha màu nhóm + viền màu nhóm, tiêu đề đậm; bỏ ô chọn lĩnh vực trùng với thanh trên */
+.ob.d2 .qd .t-head { background: color-mix(in srgb, var(--c) 13%, var(--card)); border: 1.5px solid color-mix(in srgb, var(--c) 40%, transparent); }
+.ob.d2 .qd .t-head h1.t { font-size: 36px; font-weight: 900; }
+.ob.d2 .qd .t-head .sub { color: color-mix(in srgb, var(--ink) 78%, var(--c)); font-weight: 500; }
+.ob.d2 .qd .nb > .t-head > select[data-nbdom] { display: none; }
+.ob.d2 .qd .t-head .nb-meta { gap: 8px; margin-top: 16px; }
+.ob.d2 .qd .t-head .nb-meta a, .ob.d2 .qd .t-head .nb-meta span { color: var(--ink); font-weight: 600; padding: 5px 10px; border-radius: 99px; background: color-mix(in srgb, var(--card) 70%, transparent); }
+.ob.d2 .qd .t-head .nb-meta a:hover { background: var(--card); text-decoration: none; }
+.ob.d2 .qd .t-head .nb-meta svg { color: var(--c); }
+.ob.d2[data-theme="dark"] .qd .t-head { background: color-mix(in srgb, var(--c) 18%, var(--card)); }
+
+/* banner đầu màn Huy hiệu: cùng kiểu đầu trang Bài học — nền teal pha nhạt (màu đặc, không gradient), viền teal, chữ mực */
+.ob.d2 .bd-head { background: color-mix(in srgb, #2896A4 13%, var(--card)); border: 1.5px solid color-mix(in srgb, #2896A4 40%, transparent); }
+.ob.d2 .bd-head .bd-kick { color: #1B6B76; }
+.ob.d2 .bd-head .bd-rar span { padding: 8px 12px 8px 8px; border-radius: 16px; background: color-mix(in srgb, var(--card) 70%, transparent); }
+.ob.d2[data-theme="dark"] .bd-head { background: color-mix(in srgb, #2896A4 18%, var(--card)); }
+.ob.d2[data-theme="dark"] .bd-head .bd-kick { color: #5CC8D4; }

@@ -1,0 +1,19 @@
+/* Đợt 7b (spec 7.8): nhãn và thẻ mới ở cột phải của bài giảng — port từ prototype d8.css (1c09d23), bỏ .seg8 (chỉ có ở prototype). */
+.q-lec .lb-go .lb-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.q-lec .lb-tag { padding: 1px 7px; border-radius: 99px; font-size: 11px; font-weight: 700; line-height: 1.5; white-space: nowrap; }
+.q-lec .lb-tag.no { background: var(--no-t); color: var(--no-d); }
+.q-lec .lb-tag.warn { background: var(--bg2); color: var(--ink2); }
+.q-lec .lb-row.bad .lb-go b { color: var(--ink2); }
+.q-lec .lb-re.hot { background: var(--c); color: #fff; }
+.q-lec .lb-re.hot:hover { background: var(--c); color: #fff; filter: brightness(.94); }
+.q-lec .lb-broken { margin-top: 10px; padding: 12px 14px; border: 1px solid var(--no-d); border-radius: 14px; background: var(--no-t); display: grid; gap: 4px; }
+.q-lec .lb-broken b { font-size: 13.5px; font-weight: 700; color: var(--ink); }
+.q-lec .lb-broken small { font-size: 12.5px; font-weight: 500; color: var(--ink2); line-height: 1.45; }
+.q-lec .lb-broken .btn { margin-top: 8px; justify-content: center; }
+.q-lec .lq { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: start; margin-top: 8px; padding: 10px 12px; border: 1px solid var(--ln); border-radius: 14px; background: var(--card); }
+.q-lec .lq > svg { margin-top: 3px; color: var(--ok-d); stroke-width: 3; }
+.q-lec .lq p { margin: 0; font-size: 13.5px; font-weight: 500; font-style: italic; line-height: 1.5; color: var(--ink); max-width: none; }
+.q-lec .lq small { display: block; margin-top: 4px; font-size: 12px; font-weight: 500; color: var(--ink2); line-height: 1.45; }
+.q-lec .lq.no { border-style: dashed; background: transparent; } .q-lec .lq.no > svg { color: var(--ink2); stroke-width: 2; } .q-lec .lq.no p { font-style: normal; font-weight: 700; }
+.ob[data-theme="dark"] .q-lec .lq > svg { color: #7FE0B4; }
+.ob[data-theme="dark"] .q-lec .lb-tag.no { color: #FF9D98; }

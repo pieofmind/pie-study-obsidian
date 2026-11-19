@@ -1,0 +1,90 @@
+/* PROTOTYPE — Huy hiệu kiểu sticker (D): huy hiệu cài áo tráng men bế theo dáng đồ vật, viền mực + gờ đặc.
+   Mép bế trắng (Thường) / bạc (Hiếm) / vàng (Huyền thoại). Chưa mở: bóng xám nét đứt, không gờ. */
+.bd { overflow: visible; display: block; }
+.bd.on { filter: none; }
+.bd .disc { stroke: var(--ol); stroke-width: 2.5; }
+.bd .rim { fill: none; stroke-width: 5; }
+.bd .med { filter: drop-shadow(0 2px 0 rgba(23,34,63,.35)); }
+.bd .nm, .bd .sub { fill: #fff; font-family: var(--pa-font-ui, sans-serif); text-anchor: middle; }
+.bd .nm { font-weight: 700; letter-spacing: .14em; }
+.bd .sub { font-size: 6px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; opacity: .85; }
+.bd .gl * { fill: none; stroke: var(--ol); stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+.bd .gl .f { fill: #fff; } .bd .gl .f2 { fill: #FFE08A; } .bd .gl .ln { stroke: var(--ol); stroke-width: 2.2; opacity: .5; }
+.bd .sh { fill: none; stroke: rgba(255,255,255,.55); stroke-width: 4; stroke-linecap: round; }
+.bd.off .lk { fill: var(--card); stroke: color-mix(in srgb, var(--ink3) 55%, transparent); stroke-width: 3; }
+.bd.off .lk2 { fill: none; stroke: color-mix(in srgb, var(--ink3) 30%, transparent); stroke-width: 2; stroke-dasharray: 4 5; }
+.bd.off .q { font: 900 46px var(--pa-font-ui, sans-serif); fill: color-mix(in srgb, var(--ink3) 55%, transparent); text-anchor: middle; }
+.bd-cell:hover .bd.on, .bd-recent button:hover .bd.on { animation: bd-wiggle .45s ease-in-out; }
+@keyframes bd-wiggle { 35% { transform: rotate(-6deg) scale(1.05); } 70% { transform: rotate(4deg) scale(1.05); } }
+
+.bd-page { padding: 26px 28px 120px; max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+.bd-kick { display: block; font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); }
+.bd-head, .bd-card, .bd-fam { background: var(--card); border: 2.5px solid var(--ol); border-radius: 22px; box-shadow: 0 5px 0 var(--ol); }
+.bd-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 22px 24px; flex-wrap: wrap; }
+.bd-head h1.t { margin: 4px 0 2px; font-size: 32px; font-weight: 800; letter-spacing: -.02em; }
+.bd-head p { margin: 0; color: var(--ink2); font-weight: 600; font-size: 13.5px; }
+.bd-rar { display: flex; gap: 18px; }
+.bd-rar span { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; column-gap: 8px; align-items: center; }
+.bd-rar span .bd { grid-row: 1 / span 2; }
+.bd-rar b { font-size: 18px; font-weight: 800; } .bd-rar small { font-size: 11.5px; color: var(--ink2); font-weight: 600; }
+.bd-row2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+.bd-card { padding: 18px 20px; }
+.bd-recent { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+.bd-recent button, .bd-cell { border: 0; background: none; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; color: var(--ink); font: inherit; text-align: center; border-radius: 16px; transition: transform 160ms var(--ease, ease-out); }
+.bd-recent button:hover, .bd-cell:hover { transform: translateY(-3px) rotate(-2deg); }
+.bd-recent b, .bd-cell b { font-size: 13px; font-weight: 800; line-height: 1.2; }
+.bd-recent small, .bd-cell small { font-size: 11.5px; color: var(--ink2); font-weight: 600; }
+.bd-next { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 9px 0; cursor: pointer; }
+.bd-next + .bd-next { border-top: 2px solid var(--hair); }
+.bd-next b { display: block; font-size: 13.5px; font-weight: 700; margin-bottom: 6px; } .bd-next small { font-size: 12px; font-weight: 700; color: var(--ink2); }
+.bd-prog { display: block; width: 100%; height: 9px; border-radius: 99px; background: var(--bg2); border: 2px solid var(--ol); overflow: hidden; }
+.bd-prog i { display: block; height: 100%; background: var(--c, #2896A4); border-right: 2px solid var(--ol); }
+.bd-prog.lg { height: 14px; max-width: 260px; margin: 6px auto 0; }
+.bd-cell .bd-prog { width: 70%; height: 8px; }
+.bd-cell.on b { color: var(--ink); } .bd-cell:not(.on) b { color: var(--ink2); }
+.bd-fam { padding: 16px 18px 18px; }
+.bd-fam header { display: flex; align-items: center; gap: 10px; }
+.bd-fam header b { font-size: 16px; font-weight: 800; } .bd-fam header small { margin-left: auto; font-weight: 800; font-size: 12.5px; padding: 2px 10px; border-radius: 99px; background: var(--ink); color: var(--card); }
+.bd-dot { width: 14px; height: 14px; border-radius: 5px; background: var(--c); border: 2px solid var(--ol); }
+.bd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px 6px; margin-top: 12px; }
+.bd-sheet-bg { position: absolute; inset: 0; background: rgba(23, 34, 63, .35); z-index: 40; }
+.bd-sheet { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 41; width: min(340px, calc(100% - 32px)); padding: 26px 24px 22px; background: var(--card); border: 2.5px solid var(--ol); border-radius: 26px; box-shadow: 0 6px 0 var(--ol); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; animation: bd-pop .4s cubic-bezier(.34, 1.56, .64, 1); }
+.bd-sheet h2 { margin: 6px 0 0; font-size: 22px; font-weight: 800; } .bd-sheet p { margin: 0; color: var(--ink2); font-weight: 600; }
+.bd-sheet .bd-when { font-weight: 800; color: var(--ink); margin: 4px 0 10px; }
+.bd-rtag { margin-top: 10px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; padding: 3px 10px; border-radius: 99px; border: 2px solid var(--ol); background: var(--bg); }
+.bd-rtag.R { background: #D3EEF0; } .bd-rtag.LEG { background: #FFC02E; }
+@keyframes bd-pop { from { opacity: 0; transform: translate(-50%, -44%) scale(.9); } }
+.q-more-hr { border: 0; border-top: 2px solid var(--hair); margin: 6px 0; }
+.phone .bd-page { padding: 16px 14px 110px; gap: 16px; } .phone .bd-row2 { grid-template-columns: 1fr; } .phone .bd-recent { grid-template-columns: repeat(2, 1fr); }
+.phone .bd-grid { grid-template-columns: repeat(3, 1fr); } .phone .bd-rar { gap: 10px; } .phone .bd-head h1.t { font-size: 26px; }
+.mid .bd-row2 { grid-template-columns: 1fr; }
+@media (prefers-reduced-motion: reduce) { .bd-sheet, .bd.on { animation: none !important; } .bd-recent button, .bd-cell { transition: none; } }
+
+.bd-rtag.R, .bd-rtag.LEG { color: #17223F; }   /* nền sáng → chữ mực cả ở chế độ tối */
+
+/* flat badge: chưa mở = đĩa xám phẳng có dấu ? */
+.bd.off .lk { fill: var(--bg2); stroke: none; }
+.bd.off .q { fill: var(--ink3); }
+/* bóng đổ dài: mọi phần của bản sao icon tô một màu tối mờ */
+.bd .ls * { fill: #0B1230 !important; stroke: #0B1230 !important; opacity: 1; }
+.bd .ls { opacity: .09; }
+/* Fluent Emoji: chưa mở = xám mờ */
+.bd.off .lk { fill: var(--bg2); stroke: none; }
+.bd.off .lk2 { fill: var(--card); stroke: none; opacity: .6; }
+.bd.off .fi { filter: grayscale(1); opacity: .35; }
+/* LEG: ánh kim lướt qua vành khi rê chuột (tắt khi giảm chuyển động) */
+.bd .sweep { opacity: 0; }
+.bd-cell:hover .bd.LEG .sweep, .bd-recent button:hover .bd.LEG .sweep, .bd-sheet .bd.LEG .sweep { opacity: 1; animation: bd-sweep 1.1s ease-in-out; }
+@keyframes bd-sweep { from { transform: rotate(20deg) translateX(0); } to { transform: rotate(20deg) translateX(150px); } }
+@media (prefers-reduced-motion: reduce) { .bd .sweep { animation: none !important; opacity: 0 !important; } }
+.phone .bd-rar { flex-wrap: wrap; gap: 8px; } .phone .bd-rar span { flex: 1 1 0; min-width: 0; }   /* điện thoại: 3 ô độ hiếm co/xuống dòng, không lố mép (tiếng Anh dài hơn) */
+/* bản Flat (khớp D2): huy hiệu đã mở có gờ đặc như nút chính; chưa mở = đĩa kem viền nét đứt, icon xám */
+.bd.on { filter: drop-shadow(0 3px 0 #17223F); }
+.bd.off .lk { fill: var(--bg2); stroke: color-mix(in srgb, var(--ink3) 60%, transparent); stroke-width: 2; stroke-dasharray: 5 5; }
+.bd.off .lk2 { fill: var(--card); opacity: .7; stroke: none; }
+.bd.off .fi { filter: grayscale(1); opacity: .4; }
+.ob[data-theme="dark"] .bd.on { filter: drop-shadow(0 3px 0 var(--ol, #060912)); }
+/* điện thoại: mỗi ô độ hiếm xếp dọc (icon / số / nhãn) căn giữa, nhãn không còn thò sang ô bên */
+.phone .bd-rar span { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 8px 4px; }
+.phone .bd-rar span .bd { grid-row: auto; }
+.phone .bd-rar small { white-space: nowrap; font-size: 11px; }
