@@ -51,3 +51,13 @@ button { white-space: normal; }   /* Obsidian đặt nowrap cho nút → chữ d
 .q-lec .lq.no p { font-weight: 600; }
 .q-lec .lb-broken .btn { background: var(--c); color: #fff; border: 0; box-shadow: none; }
 .q-lec .lb-broken .btn:hover { background: var(--c); filter: brightness(.94); }
+
+/* Thương hiệu Pie Of Mind đầu màn Cài đặt (brand.ts) */
+.pom-brand { margin: 14px 0 6px; padding-bottom: 18px; border-bottom: 1px solid var(--ln); }
+.pom-head { display: flex; align-items: center; gap: 14px; }
+.pom-logo { width: 48px; height: 48px; flex: none; }
+.pom-head b { display: block; font-size: 17px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+.pom-head small { display: block; margin-top: 3px; font-size: 13px; color: var(--ink2); line-height: 1.4; }
+.pom-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.pom-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--ln); background: var(--bg2); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.pom-link:hover { background: var(--card); }

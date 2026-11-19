@@ -10,6 +10,8 @@ import type { MigrateReport } from "../practice/migrate.ts";
 import type { MkRow } from "../practice/today.ts";
 
 export const IC: Record<string, string> = {
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15.3 15.3 0 0 1 0 18M12 3a15.3 15.3 0 0 0 0 18"/>',
+  music: '<path d="M9 18V5l9-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="15.5" cy="16" r="2.5"/>',
   excali: '<path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"/><path d="M14 6l3 3"/>',
   canvas: '<rect x="3" y="4" width="7" height="6" rx="1.5"/><rect x="14" y="14" width="7" height="6" rx="1.5"/><path d="M10 7h4a2 2 0 0 1 2 2v5"/>',
   flow: '<circle cx="5" cy="12" r="2"/><rect x="9" y="9" width="6" height="6" rx="1.5"/><path d="M19 9l3 3-3 3-3-3z"/><path d="M7 12h2M15 12h1"/>',

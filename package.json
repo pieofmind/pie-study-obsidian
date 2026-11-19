@@ -1,6 +1,6 @@
 {
   "name": "pie-study",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Pie Study: lesson map, understanding tracker and spaced review for Obsidian.",
   "main": "main.js",

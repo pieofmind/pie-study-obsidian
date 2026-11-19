@@ -1,4 +1,5 @@
 /* Màn Tổng quan · Bài học · Sổ học · Ôn (MVP) · Lộ trình mới · Cài đặt — port từ prototype app.js, vỏ kiểu D. */
+import { brandBlock } from "./brand.ts";
 import { tr, getLang } from "../i18n.ts";
 import { GUIDE_PATH, cmdNewLecture } from "../data/lecguide.ts";
 import { essayPrompt } from "../data/lecture.ts";
@@ -150,7 +151,7 @@ function retentionBlock(C: Ctx) {
 
 export function settingsScreen(C: Ctx) {
   const r = (b: string, s: string, ctl: string) => `<div class="set-row"><div class="tx"><b>${b}</b><small>${s}</small></div>${ctl}</div>`;
-  return `<div class="page" style="max-width:760px">${crumb(`<span>${tr("Cài đặt")}</span>`)}<h1 class="t" style="margin-top:10px">${tr("Cài đặt")}</h1>
+  return `<div class="page" style="max-width:760px">${crumb(`<span>${tr("Cài đặt")}</span>`)}${brandBlock()}<h1 class="t" style="margin-top:10px">${tr("Cài đặt")}</h1>
     <div class="set-h">${tr("Kết nối")}</div>${r("Pie Agent", !C.agentReady ? tr("Chưa cài, bản Free, hoặc bản cũ chưa có cửa tích hợp. Các nút học sẽ chép lệnh để dán vào chat.") : tr("Nút học gửi thẳng câu lệnh sang khung chat. Tên agent lấy từ cài đặt Pie Agent: {0}.", C.agent), !C.agentReady ? `<span class="dotst warn">${tr("Không tìm thấy")}</span>` : `<span class="dotst ok">${tr("Đã kết nối · API v{0}", C.agentVersion)}</span>`)}
     <div class="set-h">${tr("Dữ liệu")}</div>${r(tr("Thư mục học"), tr("Nơi có curriculum, sổ học, buổi học. Để trống = tự dò theo file tiến độ; đổi nếu dò sai."), `<input type="text" data-set-folder value="${esc(C.folder)}" placeholder="${tr("tự dò")}">`)}
     ${r(tr("Topic được nhận"), tr("Mọi note có trường learn_curriculum. Không cần cấu hình."), `<span class="num muted">${tr("{0} bài · {1} lộ trình", C.idx.all.length, C.idx.domains.length)}</span>`)}

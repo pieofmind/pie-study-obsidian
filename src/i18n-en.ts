@@ -1,5 +1,6 @@
 /* Bản tiếng Anh. Khoá = câu tiếng Việt trong tr(). Thiếu khoá → hiện tiếng Việt. */
 export const EN: Record<string, string> = {
+  "Tự học mọi thứ với gia sư AI, quản lý lộ trình học và tiến độ ngay trong Obsidian.": "Learn anything with an AI tutor, and manage your learning paths and progress right inside Obsidian.", "Cộng đồng Zalo": "Zalo community",
   "+{0} câu nữa": "+{0} more", "+{0} ý trong file": "+{0} more in the file", "17 kiểu hiểu": "17 kinds of understanding",
   "= nắm cơ bản · {0} kiểu hiểu mở rộng để sau": "= basics · {0} extra kinds for later", "Boss {0}": "Boss {0}",
   "Buổi gần nhất {0}": "Last session {0}", "Buổi học": "Sessions", "Buổi {0}": "Session {0}", "Bài": "Lesson",
