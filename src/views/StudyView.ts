@@ -324,14 +324,13 @@ export class StudyView extends ItemView {
   private shellCss: string | null = null;
   private async noteText(path: string) { const f = this.app.vault.getAbstractFileByPath(path); return f instanceof TFile ? this.app.vault.cachedRead(f) : ""; }
   private async shellOpts(note: string): Promise<ShellOpts> {
-    if (this.shellCss == null) { try { this.shellCss = shellCssFrom(await this.app.vault.adapter.read(this.tplPath())); } catch { this.shellCss = shellCssFrom(TEMPLATE_SRC); } }
+    if (this.shellCss == null) this.shellCss = shellCssFrom(TEMPLATE_SRC);   // font đã nhúng lúc build (esbuild tpl-fonts)
     return { css: this.shellCss, note, libs: { d3: D3 }, L: {
       next: tr("Tiếp →"), done: tr("Xong"), ok: tr("Đúng."), wrong: tr("Chưa đúng."), tryAgain: tr("Thử lại."), deeperSent: tr("Đã đưa sang cột bên phải"),
       predictLabel: tr("Đoán trước"), predictDone: tr("Tôi đoán xong"), predictAfter: tr("Giờ thử trên mô hình rồi so với điều bạn vừa đoán."),
       brokenTitle: tr("Khối này bị lỗi nên không chạy được."), brokenBody: tr("Phần còn lại của bài vẫn dùng bình thường. Nhờ soạn lại khối này ở cột bên phải."),
       notGrounded: tr("Chưa bám note"), notGroundedBody: tr("Câu trích không có nguyên văn trong note. Đối chiếu với note trước khi tin mô hình.") } };
   }
-  private tplPath = () => normalizePath(`${this.plugin.manifest.dir}/lecture-template.html`);
   newLectureCmd = (t: Topic) => cmdNewLecture(t.slug, GUIDE_PATH, this.plugin.lectureDir());
 
   /** Đọc nền số khối của các bài (chỉ khi mở màn Bài giảng / trang bài), có cache theo mtime; không chạy lúc khởi động. Có thay đổi thì vẽ lại một lần. */

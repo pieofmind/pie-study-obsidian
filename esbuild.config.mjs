@@ -31,15 +31,17 @@ async function styles() {
 }
 /** Thư viện cho khối visual (spec 7.8): import "lib:<tên>" → mã min dạng chuỗi, chỉ chèn vào bài giảng khi khối xin (data-libs). */
 const LIBS = { d3: "node_modules/d3/dist/d3.min.js" };
+/* Mẫu bài giảng (spec 7.3) nhúng font ngay trong main.js: iframe cách ly + CSP không tải được font ngoài, và store chỉ phát main.js/manifest/styles. */
+const tplFonts = { name: "tpl-fonts", setup(b) {
+  b.onLoad({ filter: /lecture-template\.html$/ }, a => ({ contents: readFileSync(a.path, "utf8").replace("<!--PIE-STUDY-FONTS-->", `<style>${fonts([500, 600, 700, 800, 900])}</style>`), loader: "text" }));
+} };
 const libText = { name: "lib-text", setup(b) {
   b.onResolve({ filter: /^lib:/ }, a => ({ path: a.path.slice(4), namespace: "lib" }));
   b.onLoad({ filter: /.*/, namespace: "lib" }, a => ({ contents: readFileSync(LIBS[a.path], "utf8").replace(/^\/\/ https:\/\/d3js\.org /, "// d3 "), loader: "text" }));   // giữ dòng bản quyền (ISC), bỏ URL để bản build không có địa chỉ mạng
 } };
 await esbuild.build({
-  plugins: [libText],
+  plugins: [tplFonts, libText],
   entryPoints: ["src/main.ts"], bundle: true, external: ["obsidian", "electron", ...builtins], format: "cjs", target: "es2021",
   loader: { ".png": "dataurl", ".svg": "text", ".html": "text", ".md": "text" }, outfile: "main.js", minify: process.argv[2] === "production", logLevel: "info",
 });
 await styles();
-/* Mẫu bài giảng cho agent (spec 7.3): file tự chứa, font nhúng sẵn — iframe cách ly + CSP không tải được font ngoài. Ship cạnh main.js. */
-writeFileSync("lecture-template.html", readFileSync("src/lecture-template.html", "utf8").replace("<!--PIE-STUDY-FONTS-->", `<style>${fonts([500, 600, 700, 800, 900])}</style>`));
