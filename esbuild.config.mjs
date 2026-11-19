@@ -27,7 +27,7 @@ async function styles() {
   const src = ["src/styles/proto-reset.css", "src/styles/proto-base.css", "src/styles/proto-quest.css", "src/styles/proto-badges.css", "src/styles/proto-d2.css", "src/styles/proto-d4.css", "src/styles/proto-d5.css", "src/styles/proto-d6.css", "src/styles/proto-d7.css", "src/styles/proto-d8.css", "src/styles/proto-d9.css", "src/styles/proto-d10.css", "src/styles/proto-d11.css", "src/styles/plugin.css"].map(f => readFileSync(f, "utf8")).join("\n");
   const r = await esbuild.transform(scope(src), { loader: "css", target: ["chrome108", "safari15"], minify: false });
   const lic = "/* Be Vietnam Pro — SIL Open Font License 1.1 (fontsource). */\n";
-  writeFileSync("styles.css", `/* Pie Study — bundled. Đừng sửa file này; nguồn ở src/styles/. */\n${lic}${fonts()}\n.pie-study-host { padding: 0 !important; overflow: hidden !important; }\n.pie-study-root { height: 100%; }\n${r.code}`);
+  writeFileSync("styles.css", `/* Pie Study — bundled. Đừng sửa file này; nguồn ở src/styles/. */\n${lic}${fonts()}\n.pie-study-host:not(#ps) { padding: 0; overflow: hidden; }\n.pie-study-root { height: 100%; }\n${r.code}`);
 }
 /** Thư viện cho khối visual (spec 7.8): import "lib:<tên>" → mã min dạng chuỗi, chỉ chèn vào bài giảng khi khối xin (data-libs). */
 const LIBS = { d3: "node_modules/d3/dist/d3.min.js" };

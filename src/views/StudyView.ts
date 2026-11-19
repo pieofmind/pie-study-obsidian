@@ -30,7 +30,7 @@ import { resolveMaterials, MAT_PLUGIN_IDS } from "../data/materials.ts";
 import { lectureStat, type LecStat } from "../data/lecstat.ts";
 import { pickFiles } from "../data/vaultfiles.ts";
 import { pool } from "../data/pool.ts";
-import { sourcesScreen, libraryScreen, webUrl, nsModal, nsFilesHtml, nsFromTrigger, nsReady, nsName, blankNS, type NS, type NSFile, type VFile } from "./study10.ts";
+import { sourcesScreen, libraryScreen, webUrl, nsModal, nsFilesHtml, nsFromTrigger, nsReady, nsName, type NS, type NSFile, type VFile } from "./study10.ts";
 import { recreateLibrary, loadLibrary, saveLibrary, inspectFile, writeDropped, addVaultSource, addRemoteSource } from "../library-io.ts";
 import { essayPath, essayReqCmd } from "../data/essaynote.ts";
 import { quizPath, quizCmd, DEFAULT_QUIZ_DIR } from "../data/quiznote.ts";
@@ -91,11 +91,11 @@ export class StudyView extends ItemView {
     this.rootEl = this.contentEl.createDiv({ cls: "pie-study-root" });
     this.registerDomEvent(this.rootEl, "click", e => this.onClick(e));
     this.registerDomEvent(this.rootEl, "change", e => this.onChange(e));
-    for (const ev of ["dragover", "dragleave", "drop"] as const) this.registerDomEvent(this.rootEl, ev, e => this.nsDrag(e as DragEvent));
+    for (const ev of ["dragover", "dragleave", "drop"] as const) this.registerDomEvent(this.rootEl, ev, e => this.nsDrag(e));
     this.registerDomEvent(this.rootEl, "keydown", e => { const t = e.target as HTMLElement; if (e.key === "Enter" && t.matches("[data-newpath]")) this.newPath(!agentReady(this.app)); });
     this.registerDomEvent(this.rootEl, "scroll", e => { const el = e.target as HTMLElement; if (el.dataset?.qkey) this.qScroll[el.dataset.qkey + this.frame] = el.scrollTop; }, true);
     this.registerEvent(this.app.workspace.on("css-change", () => this.render()));
-    this.registerDomEvent(document, "keydown", e => this.onKey(e));
+    this.registerDomEvent(this.containerEl.doc, "keydown", e => this.onKey(e));
     this.registerDomEvent(this.rootEl, "input", e => {
       const t = e.target as HTMLInputElement;
       if (t.matches("[data-qz-input]") && this.qz) this.qz.input = t.value;
@@ -158,7 +158,7 @@ export class StudyView extends ItemView {
     const C = this.ctx(), S = this.S, empty = !C.idx.domains.length, d = curDom(C);
     const focus = (S.screen === "quiznote" && this.qn) || (S.screen === "essreq" && this.er) || (S.screen === "lecreq" && this.lr) || (S.screen === "today" && this.td) || (S.screen === "review" && this.rv) || (S.screen === "quiz" && this.qz) || (S.screen === "essay" && this.es) || (S.screen === "lecture" && this.lc);
     if (this.plugin.ready && focus) {   // màn luyện tập toàn khung: không có vỏ thanh trên
-      const dark = document.body.classList.contains("theme-dark"), calm = !C.motion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const dark = activeDocument.body.classList.contains("theme-dark"), calm = !C.motion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const html = S.screen === "quiznote" ? quizNoteScreen(C, this.qn!) : S.screen === "essreq" ? essayReqScreen(C, this.er!) : S.screen === "lecreq" ? lectureReqScreen(C, this.lr!) : S.screen === "today" ? this.todayHtml(C) : S.screen === "review" ? practiceReview(C, this.rv!) : S.screen === "quiz" ? quizScreen(C, this.qz!)
         : S.screen === "essay" ? essayScreen(C, this.es!, essayCmd(this.es!.topic.slug, this.es!.p, this.es!.text)) : lectureScreen(C, this.lc!, this.newLectureCmd(this.lc!.topic), GUIDE_PATH);
       const live = S.screen === "lecture" && this.lcShown === this.lc && this.rootEl.querySelector("iframe[data-lecture]");   // chỉ giữ iframe nếu nó là CHÍNH lần mở này
@@ -179,7 +179,7 @@ export class StudyView extends ItemView {
     if (!this.plugin.ready) body = `<div class="empty in"><p class="sub">${tr("Đang đọc dữ liệu học…")}</p></div>`;
     else if (empty && ["home", "notebook", "overview", "review", "topic"].includes(S.screen)) body = onboardScreen(C);
     else body = ({ home: () => (d ? questMap(C, d) : onboardScreen(C)), overview: () => overviewScreen(C), topic: () => topicScreen(C), notebook: () => notebookScreen(C), review: () => reviewScreen(C), onboard: () => onboardScreen(C), settings: () => settingsScreen(C), badges: () => badgesScreen(C, C.badges), mistakes: () => mistakesScreen(C, S.mkf || { st: "open", dom: "", tok: "" }), sources: () => (C.agentReady ? sourcesScreen(C) : questMap(C, d!)), library: () => (C.agentReady ? libraryScreen(C) : questMap(C, d!)), lectures: () => (d ? lecturesScreen(C) : questMap(C, d!)), mats: () => (d ? matsScreen(C) : questMap(C, d!)), maps: () => (d ? mapsScreen(C) : questMap(C, d!)) }[S.screen] || (() => questMap(C, d!)))();
-    const dark = document.body.classList.contains("theme-dark");
+    const dark = activeDocument.body.classList.contains("theme-dark");
     const calm = !C.motion || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setHtml(this.rootEl, `<div class="ob d2${calm ? " ps-calm" : ""}" data-theme="${dark ? "dark" : "light"}" data-edge="ledge"><div class="${this.frame === "desktop" ? "desk" : this.frame}"><div class="view">${shellD(C, body)}${this.phone ? this.tabbar() : ""}${this.ns && C.agentReady ? this.nsHost(C) : ""}${this.ma ? this.maHost(C) : ""}</div></div></div>`);
     this.afterRender(calm ? [] : fx);
@@ -241,7 +241,7 @@ export class StudyView extends ItemView {
 
   private afterRender(fx: Fx[]) {
     const root = this.rootEl;
-    requestAnimationFrame(() => root.querySelectorAll<SVGCircleElement>(".ring .fg").forEach(c => { c.style.strokeDashoffset = c.dataset.off || "0"; }));
+    window.requestAnimationFrame(() => root.querySelectorAll<SVGCircleElement>(".ring .fg").forEach(c => { c.style.strokeDashoffset = c.dataset.off || "0"; }));
     const sc = root.querySelector<HTMLElement>(".qscroll");
     if (sc) {   // giữ vị trí cuộn bản đồ; lần đầu thì cuộn tới bài kế tiếp
       const key = sc.dataset.qkey + this.frame;
@@ -363,7 +363,7 @@ export class StudyView extends ItemView {
     const p = this.plugin, t = p.index.all.find(x => x.slug === slug); if (!t) return;
     const file = this.lecFile(t);
     if (!file) { new Notice(tr("Không tìm thấy file bài giảng trong learn_lecture của bài này")); return; }
-    const html = await this.app.vault.read(file), dark = document.body.classList.contains("theme-dark");
+    const html = await this.app.vault.read(file), dark = activeDocument.body.classList.contains("theme-dark");
     this.back = this.S.screen; this.lcSeen = new Set();
     const blocks = lectureBlocks(html), note = await this.noteText(t.path);
     this.lc = { topic: t, path: file.path, doc: lectureDoc(html, dark ? "dark" : "light", await this.shellOpts(note)), log: [], blocks, at: blocks[0]?.id || null, deeper: [], grounded: groundedMap(blocks, note), bad: [] };
@@ -393,7 +393,7 @@ export class StudyView extends ItemView {
   private async reloadLecture() {
     const l = this.lc; if (!l) return;
     const f = this.app.vault.getAbstractFileByPath(l.path); if (!(f instanceof TFile)) return;
-    const html = await this.app.vault.read(f), dark = document.body.classList.contains("theme-dark"), blocks = lectureBlocks(html);
+    const html = await this.app.vault.read(f), dark = activeDocument.body.classList.contains("theme-dark"), blocks = lectureBlocks(html);
     if (this.lc !== l) return;
     const at = l.at && blocks.some(b => b.id === l.at) ? l.at : blocks[0]?.id || null;
     const note = await this.noteText(l.topic.path), doc = lectureDoc(html, dark ? "dark" : "light", await this.shellOpts(note)); if (this.lc !== l) return;
@@ -436,7 +436,7 @@ export class StudyView extends ItemView {
   /** File đích: note bài hoặc file curriculum-* của lộ trình. */
   private maFile(): TFile | null { const ma = this.ma; if (!ma) return null; const p = ma.scope === "dom" ? this.maDomain()?.curPath : this.maTopic()?.path; const f = p ? this.app.vault.getAbstractFileByPath(p) : null; return f instanceof TFile ? f : null; }
   private maFiles() {
-    const skip = [this.plugin.settings.stateDir, this.plugin.quizDir(), ".obsidian"].map(x => normalizePath(x) + "/");
+    const skip = [this.plugin.settings.stateDir, this.plugin.quizDir(), this.app.vault.configDir].map(x => normalizePath(x) + "/");
     return pickMaterialFiles(this.app.vault.getFiles().map(f => ({ path: f.path, ext: f.extension.toLowerCase(), title: f.basename, mtime: f.stat.mtime })), this.ma?.q || "", this.ma?.kind || "", skip);
   }
   /** Các file đã gắn ở đích (so theo đích resolve) để mờ + "Đã gắn". */
@@ -483,7 +483,7 @@ export class StudyView extends ItemView {
   /* ── đợt 8a: hộp Thêm nguồn ── */
   /** File .md / .pdf / .epub có trong vault để chọn (bỏ nhật ký và quiz của chính plugin), lọc theo ô tìm. */
   private nsFiles(): { files: VFile[]; total: number } {
-    const skip = [this.plugin.settings.stateDir, this.plugin.quizDir(), ".obsidian"].map(x => normalizePath(x) + "/");
+    const skip = [this.plugin.settings.stateDir, this.plugin.quizDir(), this.app.vault.configDir].map(x => normalizePath(x) + "/");
     return pickFiles(this.app.vault.getFiles().map(f => ({ path: f.path, ext: f.extension.toLowerCase(), title: f.basename, mtime: f.stat.mtime })), this.ns?.q || "", skip);
   }
   private nsHost(C: Ctx) { return `<div class="qd" style="display:contents">${nsModal(C, this.ns!, this.nsFiles())}</div>`; }

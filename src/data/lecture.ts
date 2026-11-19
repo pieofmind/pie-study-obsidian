@@ -49,7 +49,7 @@ export function parseLecMsg(d: unknown): LecMsg | null {
   if (!kind) return null;
   if (kind === "broken" && keys.length === 3) {   // thêm đúng một khoá `why` (câu lỗi ngắn, chỉ để ghi log), đã lọc ký tự điều khiển và cắt 160 ký tự
     if (!own(o, "why") || typeof o.why !== "string") return null;
-    const why = o.why.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 160);
+    const why = [...o.why].map(c => c.charCodeAt(0) < 32 || c === "\u007f" ? " " : c).join("").trim().slice(0, 160);
     return { kind, block: o.block, ...(why ? { why } : {}) };
   }
   return keys.length === 2 ? { kind, block: o.block } : null;

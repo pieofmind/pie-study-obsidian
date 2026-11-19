@@ -56,7 +56,7 @@
 .qd .mk-chip { height: 34px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--ln); background: transparent; color: var(--ink2); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
 .qd .mk-chip i { font-style: normal; font-weight: 800; opacity: .7; }
 .qd .mk-chip.on { background: var(--ink); border-color: var(--ink); color: var(--card); }
-.qd .mk-filters select { height: 34px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--ln) !important; box-shadow: none; background: var(--card); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; }
+.qd .mk-filters select { height: 34px; padding: 0 10px; border-radius: 10px; box-shadow: none; background: var(--card); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; } .qd .mk-filters select:not(#ps) { border: 1px solid var(--ln); }
 .qd .mk-list { display: grid; gap: 10px; }
 .qd .mk-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 18px; align-items: center; padding: 13px 14px 13px 16px; background: var(--card); border: 1px solid var(--ln); border-radius: 16px; }
 .qd .mk-q { margin: 0 0 8px; font-size: 15.5px; font-weight: 700; line-height: 1.35; }
@@ -81,7 +81,7 @@
 /* ── khổ vừa và điện thoại ── */
 .phone .qd .mk-head { grid-template-columns: 1fr; margin: 10px 0 16px; } .phone .qd .mk-head h1.t { font-size: 28px; }
 .phone .qd .mk-cta { align-items: stretch; } .phone .qd .mk-cta .qb { width: 100%; }
-.phone .qd .mk-filters select { flex: 1 1 0; min-width: 0; } .phone .qd .mk-filters > span { flex: 0 0 100% !important; height: 0; }
+.phone .qd .mk-filters select { flex: 1 1 0; min-width: 0; } .phone .qd .mk-filters > span { height: 0; } .phone .qd .mk-filters > span:not(#ps) { flex: 0 0 100%; }
 .phone .qd .mk-row { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px 14px; }
 .phone .qd .mk-side { flex-direction: row; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .mid .qd .mk-head h1.t { font-size: 34px; }

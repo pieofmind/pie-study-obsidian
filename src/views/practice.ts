@@ -1,6 +1,6 @@
 /* Màn luyện tập toàn khung (spec 7.2) — port reviewScreen/quizScreen + PSAfterRender (thanh đáy phản hồi, Pie Bot góc) của prototype D. */
 import { tr } from "../i18n.ts";
-import { i, esc, bobBtn, cmdLearn, cmdReview, type Ctx } from "./shared.ts";
+import { i, esc, bobBtn, cmdReview, type Ctx } from "./shared.ts";
 import { judge, optionOrder, type QItem, type QState } from "../data/quest.ts";
 import { questResult } from "./study6.ts";
 import { frameDoc } from "./frames.ts";

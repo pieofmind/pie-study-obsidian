@@ -6,7 +6,7 @@
 .qd { flex: 1; min-width: 0; }
 button, select, input, textarea { box-shadow: none; margin: 0; }
 button { white-space: normal; }   /* Obsidian đặt nowrap cho nút → chữ dài bị cắt; prototype (trình duyệt) là normal */
-.ps-calm *, .ps-calm *::before, .ps-calm *::after { animation: none !important; transition: none !important; }
+.ps-calm *:not(#ps), .ps-calm *:not(#ps)::before, .ps-calm *:not(#ps)::after { animation: none; transition: none; }
 .q-more-pop button { justify-content: flex-start; text-align: left; width: 100%; height: auto; }   /* Obsidian căn giữa nội dung nút */
 .q-more-pop button span { align-items: flex-start; }
 .q-tabbar button { height: auto; box-shadow: none; border: 0; background: none; padding: 0; }   /* chặn kiểu nút của Obsidian */

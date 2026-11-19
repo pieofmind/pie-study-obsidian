@@ -1,7 +1,6 @@
 /* Đợt 8a (spec 7.10): màn Nguồn của lộ trình, màn Kho nguồn, bìa tài liệu. Chỉ hiện khi có Pie Agent (Free ẩn hẳn). */
 import { tr, getLang } from "../i18n.ts";
 import { i, esc, crumb, curDom, domName, fmtD, STLABEL, type Ctx } from "./shared.ts";
-import { isSolid } from "../practice/solid.ts";
 import { secsInLast } from "../practice/secs.ts";
 import { neededCount, coverageOf, badLessons, type Cov } from "../data/coverage.ts";
 import { paceOf, weekCounts, weekSeries } from "../data/pace.ts";

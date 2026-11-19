@@ -58,7 +58,7 @@
 .phone .bd-page { padding: 16px 14px 110px; gap: 16px; } .phone .bd-row2 { grid-template-columns: 1fr; } .phone .bd-recent { grid-template-columns: repeat(2, 1fr); }
 .phone .bd-grid { grid-template-columns: repeat(3, 1fr); } .phone .bd-rar { gap: 10px; } .phone .bd-head h1.t { font-size: 26px; }
 .mid .bd-row2 { grid-template-columns: 1fr; }
-@media (prefers-reduced-motion: reduce) { .bd-sheet, .bd.on { animation: none !important; } .bd-recent button, .bd-cell { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .bd-sheet:not(#ps), .bd.on:not(#ps) { animation: none; } .bd-recent button, .bd-cell { transition: none; } }
 
 .bd-rtag.R, .bd-rtag.LEG { color: #17223F; }   /* nền sáng → chữ mực cả ở chế độ tối */
 
@@ -66,7 +66,7 @@
 .bd.off .lk { fill: var(--bg2); stroke: none; }
 .bd.off .q { fill: var(--ink3); }
 /* bóng đổ dài: mọi phần của bản sao icon tô một màu tối mờ */
-.bd .ls * { fill: #0B1230 !important; stroke: #0B1230 !important; opacity: 1; }
+.bd .ls * { opacity: 1; } .bd .ls *:not(#ps) { fill: #0B1230; stroke: #0B1230; }
 .bd .ls { opacity: .09; }
 /* Fluent Emoji: chưa mở = xám mờ */
 .bd.off .lk { fill: var(--bg2); stroke: none; }
@@ -76,7 +76,7 @@
 .bd .sweep { opacity: 0; }
 .bd-cell:hover .bd.LEG .sweep, .bd-recent button:hover .bd.LEG .sweep, .bd-sheet .bd.LEG .sweep { opacity: 1; animation: bd-sweep 1.1s ease-in-out; }
 @keyframes bd-sweep { from { transform: rotate(20deg) translateX(0); } to { transform: rotate(20deg) translateX(150px); } }
-@media (prefers-reduced-motion: reduce) { .bd .sweep { animation: none !important; opacity: 0 !important; } }
+@media (prefers-reduced-motion: reduce) { .bd .sweep:not(#ps) { animation: none; opacity: 0; } }
 .phone .bd-rar { flex-wrap: wrap; gap: 8px; } .phone .bd-rar span { flex: 1 1 0; min-width: 0; }   /* điện thoại: 3 ô độ hiếm co/xuống dòng, không lố mép (tiếng Anh dài hơn) */
 /* bản Flat (khớp D2): huy hiệu đã mở có gờ đặc như nút chính; chưa mở = đĩa kem viền nét đứt, icon xám */
 .bd.on { filter: drop-shadow(0 3px 0 #17223F); }

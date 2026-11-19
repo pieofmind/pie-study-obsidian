@@ -81,7 +81,7 @@ export default class PieStudyPlugin extends Plugin {
     const libLater = debounce(() => void this.loadLib().then(() => this.redraw()), 300, true);
     for (const ev of ["create", "modify", "delete", "rename"] as const) this.registerEvent(this.app.vault.on(ev as "modify", (f: TAbstractFile) => { if (this.libRelevant(f)) libLater(); }));
     const act = () => this.clock.activity(Date.now());   // thao tác: phím, chuột bấm, cuộn, chạm (không tính di chuột)
-    for (const ev of ["keydown", "pointerdown", "wheel", "scroll", "touchstart"]) this.registerDomEvent(window, ev as "keydown", act, { capture: true, passive: true } as AddEventListenerOptions);
+    for (const ev of ["keydown", "pointerdown", "wheel", "scroll", "touchstart"]) this.registerDomEvent(window, ev as "keydown", act, { capture: true, passive: true });
     this.registerInterval(window.setInterval(() => this.clock.tick(Date.now(), this.clockCtx()), 1000));
     this.registerInterval(window.setInterval(() => { const t = todayStr(); if (t !== this.today) void this.rebuild(false); }, 60_000));   // qua ngày → tính lại tới hạn
   }
@@ -94,7 +94,7 @@ export default class PieStudyPlugin extends Plugin {
   }
   libRelevant(f: TAbstractFile) { return f.path === LIB_PATH || f.path.startsWith(SRC_DIR + "/") || this.libWatch.has(f.path); }
   private clockCtx(): { on: boolean; key: string | null } {
-    if (document.visibilityState !== "visible" || !document.hasFocus()) return { on: false, key: null };
+    if (activeDocument.visibilityState !== "visible" || !activeDocument.hasFocus()) return { on: false, key: null };
     const ws = this.app.workspace, view = ws.getActiveViewOfType(StudyView);
     if (view) { const k = view.studyKey(); return { on: !!k, key: k }; }
     const f = ws.getActiveViewOfType(MarkdownView)?.file;
@@ -112,7 +112,7 @@ export default class PieStudyPlugin extends Plugin {
       const log = this.practice.get(t), next = stampSolid(log, t, { now, firstRun: first, installDay });
       if (next !== log) { try { await this.practice.write(t, next); } catch { /* đã báo */ } }
     }
-    if (first) await this.saveData({ ...this.settings, solidSeeded: true, installDay }), this.settings = { ...this.settings, solidSeeded: true, installDay };
+    if (first) { await this.saveData({ ...this.settings, solidSeeded: true, installDay }); this.settings = { ...this.settings, solidSeeded: true, installDay }; }
   }
 
   async activate() {
@@ -121,7 +121,7 @@ export default class PieStudyPlugin extends Plugin {
     ws.getLeavesOfType(VIEW_TYPE).filter(l => l.getRoot() !== ws.rootSplit).forEach(l => l.detach());
     let leaf = ws.getLeavesOfType(VIEW_TYPE)[0];
     if (!leaf) { leaf = ws.getLeaf("tab"); await leaf.setViewState({ type: VIEW_TYPE, active: true }); }
-    ws.revealLeaf(leaf);
+    void ws.revealLeaf(leaf);
   }
 
   async saveSetting(p: Partial<Settings>) {
@@ -199,7 +199,7 @@ export default class PieStudyPlugin extends Plugin {
       await this.stampSolidAll(); mark("stamp");
       await this.loadLib(); mark("lib");
       this.dupes = [...new Set(this.index.domains.flatMap(d => d.topics.filter((t, k) => Number.isFinite(t.order) && d.topics.some((u, j) => j !== k && u.order === t.order)).map(t => `${d.id}/${t.slug}`)))];
-      this.ready = true; mark("done"); console.log(`[pie-study] rebuild(${live}) files=${md.length} topics=${this.index.all.length} ms: ${marks.join(" · ")}`);
+      this.ready = true; mark("done"); console.debug(`[pie-study] rebuild(${live}) files=${md.length} topics=${this.index.all.length} ms: ${marks.join(" · ")}`);
       this.redraw(before && gBefore ? diffEvents(before, this.index, gBefore, this.groupCounts()) : []);
       void this.syncBadges();
     } finally {

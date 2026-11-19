@@ -12,7 +12,7 @@
 @keyframes qq-pulse { to { transform: scale(.5); opacity: .5; } }
 .q-play .qq-step b, .q-play .qq-it b { display: block; font-size: 14.5px; font-weight: 700; line-height: 1.35; color: var(--ink); }
 .q-play .qq-step small, .q-play .qq-it small { display: block; margin-top: 3px; font-size: 12.5px; font-weight: 500; color: var(--ink2); line-height: 1.45; }
-.q-play .qq-it small .pill { margin-right: 6px !important; }
+.q-play .qq-it small .pill:not(#ps) { margin-right: 6px; }
 .q-play .qq-step:not(.ok):not(.now) b { color: var(--ink2); }
 .q-play .qq-it.no { background: transparent; border-style: dashed; } .q-play .qq-it.no b { color: var(--ink2); font-weight: 600; text-decoration: line-through; text-decoration-color: var(--ink3); }
 @media (prefers-reduced-motion: reduce) { .q-play .qq-step.now .d i { animation: none; } }

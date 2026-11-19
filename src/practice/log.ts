@@ -89,7 +89,7 @@ export function previewIntervals(log: PracticeLog, c: CardRef, now: Date, ret?: 
 }
 
 /** Khả năng còn nhớ thẻ lúc now (0–1, ts-fsrs tính từ stability và thời gian đã trôi). Thẻ chưa có lịch = 0. */
-export const cardRecall = (log: PracticeLog, key: string, now: Date) => { const s = log.cards[key]; return s ? F().retrievability(toCard(s, now), now) as unknown as number : 0; };
+export const cardRecall = (log: PracticeLog, key: string, now: Date) => { const s = log.cards[key]; return s ? F().retrievability(toCard(s, now), now) : 0; };
 
 export const isCardDue = (log: PracticeLog, c: CardRef, now: Date) => { const s = log.cards[cardKey(c.q)]; return !s || new Date(s.due) <= now; };
 

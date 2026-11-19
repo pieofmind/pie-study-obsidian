@@ -255,7 +255,7 @@ h2.t { font-size: var(--pa-fs-md); font-weight: 650; margin: 0; letter-spacing: 
 @keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } }
 
 /* ───────── Màn Topic ───────── */
-.t-head { display: flex; gap: 22px; align-items: flex-start; }
+.t-head { display: flex; gap: 22px; align-items: flex-start; margin-top: 12px; }
 .t-head .tx { flex: 1; min-width: 0; }
 .phone .t-head { flex-direction: column-reverse; gap: 12px; }
 .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; }
@@ -405,7 +405,7 @@ h2.t { font-size: var(--pa-fs-md); font-weight: 650; margin: 0; letter-spacing: 
 .agent { width: 0; flex: none; overflow: hidden; border-left: 1px solid var(--background-modifier-border); background: var(--pa-canvas); transition: width var(--pa-dur-3) var(--pa-ease); display: flex; flex-direction: column; }
 .agent.open { width: 360px; }
 .agent > * { width: 360px; }
-.phone .agent { position: absolute; inset: 0; width: 100% !important; z-index: 40; transform: translateY(100%); transition: transform var(--pa-dur-3) var(--pa-ease); border: 0; padding-top: 44px; }
+.phone .agent { position: absolute; inset: 0; z-index: 40; transform: translateY(100%); transition: transform var(--pa-dur-3) var(--pa-ease); border: 0; padding-top: 44px; } .phone .agent:not(#ps) { width: 100%; }
 .phone .agent.open { transform: none; }
 .phone .agent > * { width: 100%; }
 .ag-head { height: 44px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--pa-line); }

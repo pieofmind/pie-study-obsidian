@@ -4,7 +4,6 @@ import { i, esc, crumb, curDom, domName, type Ctx } from "./shared.ts";
 import type { Topic, Domain } from "../data/index.ts";
 import { MAT_KINDS, cmdAttachMaterials, cmdRefindMaterial, type Material, type MatKind } from "../data/materials.ts";
 import { matThumb } from "../data/matthumb.ts";
-import { pickMaterialFiles, type PickMat } from "../data/matwrite.ts";
 
 const KIC: Record<MatKind, string> = { excalidraw: "excali", canvas: "canvas", pieflow: "flow", smm: "mind" };
 const curName = (d: Domain) => d.curPath ? d.curPath.split("/").pop()!.replace(/\.md$/, "") : `curriculum-${d.id}`;

@@ -38,7 +38,7 @@ function burst(root: HTMLElement, el: Element | null, n = 18, colors = PAL) {
   if (!el) return;
   const r = el.getBoundingClientRect(), host = root.querySelector(".qd") || root, h = host.getBoundingClientRect();
   for (let k = 0; k < n; k++) {
-    const p = document.createElement("i"), a = (k / n) * Math.PI * 2 + Math.random() * .4, d = 60 + Math.random() * 70;
+    const p = createEl("i"), a = (k / n) * Math.PI * 2 + Math.random() * .4, d = 60 + Math.random() * 70;
     p.className = "q-conf" + (k % 3 === 0 ? " strip" : "");
     p.style.cssText = `left:${r.left - h.left + r.width / 2}px;top:${r.top - h.top + r.height / 2}px;background:${colors[k % colors.length]};--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d - 30}px;--rot:${Math.random() * 540 - 270}deg;animation-delay:${Math.random() * 60}ms`;
     host.append(p); window.setTimeout(() => p.remove(), 1300);

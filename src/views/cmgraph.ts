@@ -8,11 +8,11 @@ const LOD_K = .9;   // đồ thị lớn: khái niệm (lod) chỉ hiện khi ph
 /** Dựng đồ thị vào `box` (đã có sẵn nút +/−/vừa khung). Trả false nếu không đọc được sơ đồ. */
 export function mountGraph(box: HTMLElement, o: MountOpts): boolean {
   const cs = getComputedStyle(box), FONT = cs.fontFamily || "system-ui, sans-serif";
-  const mctx = document.createElement("canvas").getContext("2d")!;
+  const mctx = createEl("canvas").getContext("2d")!;
   const g0: CmGraph | null = buildGraph(o.parse, (t, px) => { mctx.font = `600 ${px}px ${FONT}`; return mctx.measureText(t).width; }, o.pathOf);
   if (!g0) return false;
   const G: CmGraph = g0;
-  const cv = document.createElement("canvas"), ctx = cv.getContext("2d")!; box.prepend(cv);
+  const cv = createEl("canvas"), ctx = cv.getContext("2d")!; box.prepend(cv);
   const big = g0.N.length > BIG, T = { k: 1, x: 0, y: 0 }; let alpha = settle(G), hot: CmBlock | null = null, drag: { o: CmBlock; moved: boolean } | null = null, pan: { mx: number; my: number; x: number; y: number } | null = null, W = 0, H = 0;
   const css = (n: string) => getComputedStyle(box).getPropertyValue(n).trim();
   const size = () => { const dpr = devicePixelRatio || 1; W = box.clientWidth; H = box.clientHeight; cv.width = W * dpr; cv.height = H * dpr; cv.style.width = W + "px"; cv.style.height = H + "px"; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
@@ -56,7 +56,7 @@ export function mountGraph(box: HTMLElement, o: MountOpts): boolean {
   const at = (mx: number, my: number) => { const p = toW(mx, my), L = lit(); return G.N.find(b => shown(b, L) && Math.hypot(b.x - p.x, b.y - p.y) < b.r + 6 || (Math.abs(b.x - p.x) < b.w / 2 && p.y > b.y + b.r && p.y < b.y + b.bot)); };
   const ro = new ResizeObserver(() => size());
   let crowded = big;
-  function loop() { if (!box.isConnected) return ro.disconnect(); if (alpha > .02) { tick(G, alpha); alpha *= .985; } else if (crowded) crowded = separate(G, 4) > 0; paint(); requestAnimationFrame(loop); }
+  function loop() { if (!box.isConnected) return ro.disconnect(); if (alpha > .02) { tick(G, alpha); alpha *= .985; } else if (crowded) crowded = separate(G, 4) > 0; paint(); window.requestAnimationFrame(loop); }
   size(); fit(); ro.observe(box); loop();
   const pos = (e: PointerEvent | WheelEvent): [number, number] => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
   cv.addEventListener("wheel", e => { e.preventDefault(); const [mx, my] = pos(e), k = Math.max(.25, Math.min(4, T.k * Math.exp(-e.deltaY * .0015))); T.x = mx - (mx - T.x) * k / T.k; T.y = my - (my - T.y) * k / T.k; T.k = k; }, { passive: false });

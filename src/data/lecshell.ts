@@ -5,7 +5,7 @@ import { prepareLectureDoc, isBlockId, lectureBlocks, type LecBlock } from "./le
 import { quoteOk } from "./quiznote.ts";
 
 export const BLOCKS_MARK = "<!--pie-study:blocks v1-->";
-export const isBlocksFile = (text: string) => text.replace(/^﻿/, "").trimStart().startsWith(BLOCKS_MARK);
+export const isBlocksFile = (text: string) => text.replace(/^\uFEFF/, "").trimStart().startsWith(BLOCKS_MARK);
 
 /** Mọi chữ khung hiện trong iframe — truyền vào đã qua tr(). */
 export interface ShellStrings {
@@ -95,7 +95,7 @@ const VISUAL_JS = BLAME_JS + `document.querySelectorAll('section[data-block="vis
 
 /** Ghép khung quanh nội dung khối. Kết quả đưa tiếp qua prepareLectureDoc (CSP + class theme) như mọi bài giảng. */
 export function buildShell(blocksText: string, o: ShellOpts): string {
-  const body = blocksText.replace(/^﻿/, "").trimStart().replace(BLOCKS_MARK, "");
+  const body = blocksText.replace(/^\uFEFF/, "").trimStart().replace(BLOCKS_MARK, "");
   let n = 0;
   const blockJs: string[] = [], want = new Set<string>();
   const sections = [...body.matchAll(/(<section\b[^>]*>)([\s\S]*?)<\/section>/gi)].map(m => {

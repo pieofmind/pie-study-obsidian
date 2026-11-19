@@ -89,7 +89,7 @@
 .ob.d2 .qd .t-head .ring .bg { stroke: var(--bg2); } .ob.d2 .qd .t-head .ring .fg { stroke: var(--c); }
 .ob.d2 .qd .t-head .ring .lbl b, .ob.d2 .qd .t-head .ring .lbl small { color: var(--ink); }
 .ob.d2 .qd .t-head .nb-meta a, .ob.d2 .qd .t-head .nb-meta span { color: var(--ink2); }
-.ob.d2 .qd .page select { border: var(--d2-flat) !important; box-shadow: none; }
+.ob.d2 .qd .page select { box-shadow: none; } .ob.d2 .qd .page select:not(#ps) { border: var(--d2-flat); }
 .ob.d2 .qd .note-call { border: 0; box-shadow: none; border-radius: 14px; }
 /* 17 kiểu hiểu: hàng phẳng, đã đạt = chấm màu, không còn 17 viên gạch nổi */
 .ob.d2 .qd .tokg h6 { text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 700; }

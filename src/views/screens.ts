@@ -7,7 +7,7 @@ import { RUBRIC } from "../data/rubric.ts";
 import { nextOf, domStats, overdueDaysT, type Topic } from "../data/index.ts";
 import { fmtDate, type Status } from "../status.ts";
 import { cardKey, firstGoodIntervals, LEVELS } from "../practice/log.ts";
-import { i, esc, md, sty, QPAL, STLABEL, tokName, fmtD, qNum, bobBtn, stDot, ring, crumb, curDom, findT, cmdLearn, cmdReview, cmdNewPath, domName, type Ctx } from "./shared.ts";
+import { i, esc, md, sty, QPAL, STLABEL, tokName, fmtD, qNum, bobBtn, ring, crumb, curDom, findT, cmdLearn, cmdReview, cmdNewPath, domName, type Ctx } from "./shared.ts";
 import { groupsOf, qDone, groupName } from "./map.ts";
 import { rhythmBlock, testOutBtn } from "./study5.ts";
 import { matsTab, topicMats } from "./study13.ts";
@@ -70,7 +70,7 @@ export function topicScreen(C: Ctx) {
   const warn = tokWarn(t, log);   // token đã đạt nhưng độ vững thấp — chỉ báo, không tự hạ
   const hasQuest = C.quests.some(q => q.topics.includes(t.slug) && q.nodes.some(n => !n.boss && n.items.length));
   return `<div class="page">${crumb(`<a data-go="home" data-dom="${esc(t.dom)}">${esc(domTitle(C, t.dom))}</a>`, `<span>${tr("Bài {0}", qNum(t))}</span>`)}
-    <div class="t-head" style="margin-top:12px;${sty(groupIdx(C, t))}"><div class="tx"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill ${qDone(t) ? "done" : s === "learning" ? "acc" : ""}">${STLABEL(s)}</span>${t.due ? `<span class="pill att">${i("clock", 12)}${tr("Tới hạn ôn từ {0}", fmtD(t.next))}</span>` : ""}</div>
+    <div class="t-head" style="${sty(groupIdx(C, t))}"><div class="tx"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill ${qDone(t) ? "done" : s === "learning" ? "acc" : ""}">${STLABEL(s)}</span>${t.due ? `<span class="pill att">${i("clock", 12)}${tr("Tới hạn ôn từ {0}", fmtD(t.next))}</span>` : ""}</div>
     <h1 class="t" style="margin-top:10px">${esc(t.title)}</h1><p class="sub">${t.rev ? tr("Học lần gần nhất {0}", fmtDate(t.rev, true)) : tr("Học lần gần nhất — chưa học")} · ${tr("{0}/17 token", t.und.length)} · ${tr("{0} thẻ", t.cards)}</p>
     <div class="acts">${bobBtn(C, s === "new" ? tr("Bắt đầu học với {0}", A) : t.due ? tr("Ôn với {0}", A) : tr("Học tiếp với {0}", A), t.due ? cmdReview(t) : cmdLearn(t))}${testOutBtn(C, t, "page")}
     ${cards.length ? `<button class="btn" data-review="${esc(t.slug)}">${i("cards")}${tr("Ôn thẻ")}${dueCards ? ` <span class="c">${dueCards}</span>` : ""}</button>` : ""}${hasQuest ? `<button class="btn" data-quest="${esc(t.slug)}">${i("quest")}${tr("Làm quest")}</button>` : ""}<button class="btn" data-qreq="${esc(t.path)}">${i("zap", 14)}${tr("Quiz nhanh")}</button>
@@ -166,7 +166,7 @@ export function settingsScreen(C: Ctx) {
     ${C.agentReady ? `<div class="set-h">${tr("Nhịp học")}</div>${r(tr("Đo giờ học"), tr("Đếm khi đang ở màn Pie Study hoặc đang đọc note bài học, dừng sau 2 phút không thao tác. Chỉ lưu trên máy này. Học với {0} và học ngoài máy chưa đếm.", esc(C.agent)), `<button class="toggle ${C.settings.timeTrack ? "on" : ""}" data-set-timetrack aria-pressed="${C.settings.timeTrack}" aria-label="${tr("Đo giờ học")}"></button>`)}` : ""}
     <div class="set-h">${tr("Chuyển từ EngramQuest")}</div>${r(tr("Lịch ôn và kết quả quest cũ"), tr("Đọc một lần từ engram-review/sr và engram-quest/state. Không xoá dữ liệu cũ, không ghi đè lịch mới hơn."), `<span style="display:flex;gap:8px"><button class="btn" data-migrate="scan">${i("refresh")}${tr("Quét")}</button>${C.migration ? `<button class="btn pri" data-migrate="write">${tr("Chuyển")}</button>` : ""}</span>`)}
     ${C.migration ? (() => { const m = C.migration; return `<div class="card" style="margin-top:12px;font-size:var(--pa-fs-sm)"><div style="display:flex;gap:18px;flex-wrap:wrap"><span><b class="num">${m.srFiles}</b> ${tr("file thẻ")}</span><span><b class="num" style="color:var(--pa-st-done)">${m.matched + m.fuzzy}</b> ${tr("thẻ khớp")}${m.fuzzy ? ` (${tr("{0} khớp mờ", m.fuzzy)})` : ""}</span><span><b class="num" style="color:var(--pa-st-attention)">${m.unmatched.length}</b> ${tr("thẻ đã đổi câu hỏi — cần ghép tay")}</span><span><b class="num">${m.kept}</b> ${tr("thẻ giữ lịch Pie Study")}</span><span><b class="num">${m.notTopic.length}</b> ${tr("file không phải bài học")}</span><span><b class="num">${m.questFiles}</b> ${tr("quest")} · ${m.questNodes} node</span></div></div>`; })() : ""}
-    <div class="set-h">${tr("Giao diện")}</div>${r(tr("Sáng / tối"), tr("Theo Obsidian."), `<span class="num muted">${document.body.classList.contains("theme-dark") ? tr("Tối") : tr("Sáng")}</span>`)}
+    <div class="set-h">${tr("Giao diện")}</div>${r(tr("Sáng / tối"), tr("Theo Obsidian."), `<span class="num muted">${activeDocument.body.classList.contains("theme-dark") ? tr("Tối") : tr("Sáng")}</span>`)}
     ${r(tr("Chuyển động thưởng"), tr("Hiệu ứng khi bài vừa lên mức. Luôn tắt nếu máy bật giảm chuyển động."), `<button class="toggle ${C.motion ? "on" : ""}" data-set-motion aria-pressed="${C.motion}" aria-label="${tr("Chuyển động thưởng")}"></button>`)}
     ${r(tr("Ngôn ngữ"), tr("Theo Obsidian."), `<span class="num muted">${getLang() === "vi" ? "Tiếng Việt" : "English"}</span>`)}</div>`;
 }

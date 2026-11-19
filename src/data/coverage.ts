@@ -17,7 +17,7 @@ const stateOf = (t: T): Cov => (t.status === "master" || t.status === "basic" ? 
 
 export interface CovRow { h: Heading; group: boolean; topics: T[]; state: Cov }
 export function coverageOf(srcId: string, heads: Heading[], topics: T[]) {
-  const rows: CovRow[] = heads.map(h => ({ h, group: !isSection(h, heads), topics: [], state: "none" as Cov }));
+  const rows: CovRow[] = heads.map(h => ({ h, group: !isSection(h, heads), topics: [], state: "none" }));
   const first = new Map<string, CovRow>();
   for (const r of rows) if (!r.group && !first.has(r.h.id.toLowerCase())) first.set(r.h.id.toLowerCase(), r);
   for (const t of topics) for (const p of t.source) {
