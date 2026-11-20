@@ -24,8 +24,9 @@ Pie Study only talks to Pie Agent through Pie Agent's public plugin API inside O
 
 ## Files it writes
 
-- `Pie Study/` in your vault: practice logs, the source library (`kho-nguon.json`, plus copies of files you add to it), and two guide notes for Pie Agent on how to write lectures and quizzes.
-- The `learn_materials` property of a lesson note, only when you attach or remove a study material from Pie Study. No other property is changed.
+- `Pie Study/` in your vault: practice logs, the source library (`kho-nguon.json`, plus copies of files you add to it), and three guide notes for Pie Agent on how to write lectures, quizzes and independent check questions.
+- The `learn_materials` property of a lesson note, only when you attach or remove a study material from Pie Study.
+- The `learn_pending` and `learn_understood` properties of a lesson note, only when you finish an independent check question: a pass moves that token from `learn_pending` to `learn_understood`, a miss removes it from `learn_pending`. No other property is changed.
 
 It never touches files outside your vault.
 
