@@ -14,6 +14,7 @@ export interface Topic {
   lectures: string[];   // learn_lecture (spec 4.6), chưa giải thành file
   source: string[];     // learn_source (spec 7.11): "<id nguồn>#<tiêu đề mục>"
   need: "core" | "later";   // learn_need: thiếu = core
+  pend?: string[];   // learn_pending (đợt 9): token chấm đạt tạm trong buổi học, chưa qua lượt kiểm; KHÔNG tính vào und / mức xanh
   materials: string[];   // learn_materials (8b): link tới sơ đồ / canvas / pieflow / mindmap của bài
   dimension?: string;    // learn_dimension (8b): link tới MOC của dimension
   outside?: boolean;   // note không thuộc lộ trình (quiz note, đợt 6): dom = OUTSIDE
@@ -56,7 +57,7 @@ export function buildIndex(files: FileRec[], today: string, cardCount: (path: st
     const o = Number(fm.learn_order);
     const t: Topic = {
       slug: f.basename, path: f.path, uid: fm.uid ? String(fm.uid) : undefined, title: str(fm.title) || f.basename, order: Number.isFinite(o) ? o : Infinity,
-      und, rev: str(fm.learn_reviewed), next: str(fm.learn_next), cards: cardCount(f.path), dom: id,
+      und, pend: understood(fm.learn_pending).filter(k => !und.includes(k)), rev: str(fm.learn_reviewed), next: str(fm.learn_next), cards: cardCount(f.path), dom: id,
       status: topicStatus(und, fm.learn_reviewed), due: isDue(fm.learn_next, today), lectures: lecturesOf(fm.learn_lecture, f.basename, lecture),
       source: parseSources(fm.learn_source), need: parseNeed(fm.learn_need), materials: parseMaterials(fm.learn_materials), dimension: linkTarget(fm.learn_dimension),
     };

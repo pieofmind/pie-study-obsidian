@@ -8,7 +8,7 @@ export const ATTEMPT_CAP = 200;
 export const questItemKey = (q: string) => "q:" + cardKey(q);
 export const lectureKey = (path: string, token: string) => `lec:${path}#${token}`;
 
-export interface AttemptIn { src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean; q?: string; ref?: string }
+export interface AttemptIn { src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean; conf?: number; q?: string; ref?: string }
 
 /** Thêm một lượt vào attempts (cắt ở 200 dòng) và áp luật sổ lỗi sai:
     sai → open (đã có thì +misses, cập nhật last; đã gỡ thì mở lại) · đúng, không assisted, vào ngày địa phương SAU ngày last → cleared.
@@ -17,8 +17,9 @@ export function recordAttempt(log: PracticeLog, a: AttemptIn, now: Date): Practi
   const t = now.toISOString(), row: Attempt = { t, src: a.src, key: a.key, ok: a.ok };
   if (a.token) row.token = a.token;
   if (a.assisted) row.assisted = true;
+  if (a.conf != null) row.conf = a.conf;
   const attempts = [...(log.attempts || []), row].slice(-ATTEMPT_CAP), strength = strengths(attempts);
-  if (a.src === "card") return { ...log, attempts, strength };
+  if (a.src === "card" || a.src === "check") return { ...log, attempts, strength };   // lượt kiểm: chỉ là lượt, không vào sổ lỗi sai
   const m = log.mistakes?.[a.key];
   let next: Mistake | undefined;
   if (!a.ok) {
@@ -33,4 +34,18 @@ export function recordAttempt(log: PracticeLog, a: AttemptIn, now: Date): Practi
 export function dropMistake(log: PracticeLog, key: string): PracticeLog {
   const { [key]: _gone, ...rest } = log.mistakes || {};
   return { ...log, mistakes: rest };
+}
+
+/** Đợt 9: mức "Chắc chắn" trong 3 mức Đoán · Khá chắc · Chắc chắn. */
+export const CONF_SURE = 2;
+export interface SureWrong { key: string; src: AttemptSrc; q: string; t: string }
+/** Danh sách "chắc chắn mà sai" (lộ ảo tưởng hiểu): mỗi câu một dòng, lần gần nhất, mới nhất trước. Câu không còn chữ (thẻ mất lịch) thì bỏ. */
+export function sureWrong(logs: PracticeLog[]): SureWrong[] {
+  const by = new Map<string, SureWrong>();
+  for (const l of logs) for (const a of l.attempts || []) {
+    if (a.ok || a.conf !== CONF_SURE) continue;
+    const q = a.src === "card" ? l.cards[a.key]?.q : l.mistakes?.[a.key]?.q, prev = by.get(a.key);
+    if (q && (!prev || a.t > prev.t)) by.set(a.key, { key: a.key, src: a.src, q, t: a.t });
+  }
+  return [...by.values()].sort((x, y) => y.t.localeCompare(x.t));
 }

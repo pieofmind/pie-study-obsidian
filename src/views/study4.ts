@@ -1,12 +1,15 @@
 /* Đợt 4 (spec 7.4) — port d4.js của prototype (bản D2): màn Lỗi sai, dòng câu sai ở trang bài học.
    Plugin chỉ ghi nhật ký luyện tập; giảng lại là việc của agent (ask, Free thì chép lệnh). */
 import { tr } from "../i18n.ts";
-import { i, esc, fmtD, tokName, crumb, domName, type Ctx } from "./shared.ts";
+import { i, esc, fmtD, tokName, crumb, domName, bobBtn, cmdCheck, cmdLearn, type Ctx } from "./shared.ts";
+import { pendingNoCheck, relearnTokens } from "../data/tick.ts";
 import { todayStr } from "../status.ts";
 import { shortTitle, OUTSIDE, type Topic } from "../data/index.ts";
 import type { MkRow } from "../practice/today.ts";
 import type { PracticeLog } from "../practice/log.ts";
 import { strengthOf, strengthLevel } from "../practice/strength.ts";
+import { gradeEssay, type CheckItem } from "../data/checknote.ts";
+import { corner } from "./practice.ts";
 
 export interface MkFilter { st: "open" | "cleared" | "all"; dom: string; tok: string }
 export type Row = MkRow<Topic>;
@@ -18,6 +21,13 @@ export const mkQ = (r: Row) => r.m.q || tr("Câu {0} trong bài giảng {1}", to
 export const mkOpen = (C: Ctx) => C.mk.filter(r => r.m.status === "open");
 /** Lệnh giảng lại gửi agent — tiếng Việt, không qua tr() (agent đọc lệnh, không phải người). */
 export const cmdReteach = (r: Row) => `giảng lại [[${r.topic.slug}]] — token: ${r.m.token || ""}\nCâu tôi làm sai: ${mkQ(r)}`;
+
+/** Đợt 9: token tạm chưa có câu kiểm → nhờ agent soạn; token vừa trượt kiểm → cần học lại. Không có learn_pending thì không hiện gì. */
+export function tickLines(C: Ctx, t: Topic) {
+  const A = C.agent, need = pendingNoCheck(t.pend || [], C.checks(t)), re = relearnTokens(C.log(t).attempts || [], t.und, t.pend || []);
+  return (need.length ? `<div class="note-call info">${i("info")}<div>${tr("{0} kiểu hiểu đang chờ kiểm nhưng chưa có câu kiểm.", need.length)} ${bobBtn(C, tr("Nhờ {0} soạn câu kiểm", A), cmdCheck(t, need), "")}</div></div>` : "")
+    + (re.length ? `<div class="note-call">${i("alert")}<div>${tr("Cần học lại: {0}.", re.map(tokName).join(", "))} ${bobBtn(C, tr("Học lại với {0}", A), cmdLearn(t), "")}</div></div>` : "");
+}
 
 export function mkTopicLine(C: Ctx, t: Topic) {
   const n = mkOpen(C).filter(r => r.topic.path === t.path).length;
@@ -51,18 +61,34 @@ export function mistakesScreen(C: Ctx, f: MkFilter) {
 }
 
 /* ── Phiên hôm nay ── */
-export interface TodayInfo { n: number; miss: number; cards: number; later: number; done: number; streak: number }
+export interface TodayInfo { n: number; miss: number; checks?: number; cards: number; later: number; done: number; streak: number }
 /** Khối "Hôm nay học gì?": nút Phiên hôm nay là điểm nhấn duy nhất; xong phiên / không có gì tới hạn thì thành dòng phẳng. */
 export function todayBtn(x: TodayInfo) {
   if (!x.n && !x.done) return `<div class="ov-td-flat">${i("check", 20)}<span><b>${tr("Hôm nay không có gì tới hạn")}</b><small>${tr("Không có thẻ hay câu sai nào cần làm lại.")}</small></span></div>`;
   if (!x.n) return `<div class="ov-td-flat ok">${i("check", 20)}<span><b>${tr("Xong phiên hôm nay")}</b><small>${tr("{0} mục · chuỗi {1} ngày", x.done, x.streak)}</small></span></div>`;
-  return `<button class="ov-act td" data-tdstart="all"><span class="ov-act-ic">${i("zap", 22)}</span><span><b>${tr("Phiên hôm nay · {0} mục", x.n)}</b><small>${tr("{0} câu sai · {1} thẻ tới hạn · khoảng {2} phút", x.miss, x.cards, Math.max(1, Math.round(x.n * .5)))}${x.later ? " · " + tr("còn {0} mục để hôm sau", x.later) : ""}</small></span>${i("arrow", 20)}</button>`;
+  return `<button class="ov-act td" data-tdstart="all"><span class="ov-act-ic">${i("zap", 22)}</span><span><b>${tr("Phiên hôm nay · {0} mục", x.n)}</b><small>${x.checks ? tr("{0} câu kiểm lại", x.checks) + " · " : ""}${tr("{0} câu sai · {1} thẻ tới hạn · khoảng {2} phút", x.miss, x.cards, Math.max(1, Math.round(x.n * .5)))}${x.later ? " · " + tr("còn {0} mục để hôm sau", x.later) : ""}</small></span>${i("arrow", 20)}</button>`;
 }
 export const tdTitle = (mode: "all" | "miss") => (mode === "miss" ? tr("Làm lại câu sai") : tr("Phiên hôm nay"));
 /** Dòng pha phía trên câu: đang ở phần câu sai hay phần thẻ tới hạn. */
 export const tdPhase = (miss: boolean, k: number, n: number) => miss
   ? `<div class="td-phase"><b>${tr("Câu sai làm lại")}</b><span>${k}/${n}</span></div>`
   : `<div class="td-phase"><b>${tr("Thẻ tới hạn")}</b><span>${k}/${n} · ${tr("dễ quên nhất trước")}</span></div>`;
+/** Đợt 9: dòng pha của câu kiểm độc lập (không gợi ý, không có giải thích). */
+export const tdCheckPhase = (k: number, n: number) => `<div class="td-phase"><b>${tr("Kiểm lại sau buổi học")}</b><span>${k}/${n} · ${tr("không gợi ý")}</span></div>`;
+export interface CK { text: string; shown: boolean; ticks: boolean[] }
+/** Câu kiểm tự luận: viết trước → hiện đáp án mẫu + ý chính → người học tick ý đã nói được, đủ mọi ý mới đạt. */
+export function checkEssayScreen(top: string, phase: string, c: CheckItem, k: CK) {
+  const pts = c.points || [], all = gradeEssay(k.ticks, pts);
+  const body = !k.shown
+    ? `<textarea data-ck-input placeholder="${esc(tr("Viết bằng lời của mình, không xem lại note."))}">${esc(k.text)}</textarea>
+      <div class="bar"><span class="sp"></span><button class="btn pri" data-ck-show ${k.text.trim() ? "" : "disabled"}>${tr("Xem đáp án mẫu")}</button></div>`
+    : `<div class="es-q"><small>${tr("Bạn đã viết")}</small><b>${esc(k.text)}</b><span class="es-src"><small>${tr("Đáp án mẫu")}</small>${esc(c.answer || c.quote)}</span></div>
+      <p class="sub">${tr("Tick những ý bài viết của bạn đã nói được:")}</p>
+      ${pts.map((p, j) => `<button class="opt ${k.ticks[j] ? "right" : ""}" data-ck-tick="${j}" aria-pressed="${k.ticks[j] ? "true" : "false"}"><span class="k">${k.ticks[j] ? i("check", 14) : j + 1}</span>${esc(p)}</button>`).join("")}
+      <div class="bar"><span>${all ? tr("Đủ mọi ý: đạt.") : tr("Còn thiếu ý: chưa đạt.")}</span><span class="sp"></span><button class="btn pri" data-ck-done>${tr("Xác nhận")}</button></div>`;
+  return `<div class="focus q-play qd">${top}<div class="focus-body">${phase}<div class="essay in"><div class="ck-pills"><span class="pill tok">${esc(c.token)}</span><span class="pill">${tr("Tự luận")}</span></div>
+    <p class="qq">${esc(c.q)}</p>${body}</div></div>${corner(k.shown ? "idle" : "typing", "ck:" + c.q.length)}</div>`;
+}
 export const tdAtt = (r: Row) => `<span class="pill att">${tr("Đã sai {0} lần · gần nhất {1}", r.m.misses, day(r.m.last))}</span>`;
 export const tdFate = (ok: boolean) => `<span class="td-fate">${ok ? tr("Câu này được gỡ khỏi sổ lỗi sai.") : tr("Câu này ở lại sổ lỗi sai. Làm lại từ ngày mai để gỡ.")}</span>`;
 

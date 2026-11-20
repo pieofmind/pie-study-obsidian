@@ -23,8 +23,9 @@ export interface PracticeLog {
   solidAt?: SolidAt; secs?: Record<string, number>;
 }
 export interface SolidAt { t: string; est?: true; lost?: string }
-export type AttemptSrc = "card" | "quest" | "lecture";
-export interface Attempt { t: string; src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean }
+export type AttemptSrc = "card" | "quest" | "lecture" | "check";
+/** conf (đợt 9, spec 7.13): độ tự tin chọn trước khi lật/trả lời — 0 Đoán · 1 Khá chắc · 2 Chắc chắn. Log cũ không có. */
+export interface Attempt { t: string; src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean; conf?: number }
 export interface Mistake { src: "quest" | "lecture"; token?: string; q: string; ref: string; first: string; last: string; misses: number; status: "open" | "cleared"; clearedAt?: string }
 export interface CardRef { q: string; token?: string }
 

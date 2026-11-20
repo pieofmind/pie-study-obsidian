@@ -11,9 +11,9 @@ import { syncMascot } from "./mascot.ts";
 import { setHtml, appendHtml, htmlFrag } from "./html.ts";
 import { play, type Fx } from "./motion.ts";
 import { badgesScreen, unlockToast } from "./badges.ts";
-import { reviewScreen as practiceReview, quizScreen, verdict, fmtGap, freshItem, secsLeft, focusTop, type RV, type QZ, type RvCard } from "./practice.ts";
+import { reviewScreen as practiceReview, quizScreen, verdict, fmtGap, freshItem, secsLeft, focusTop, needConf, CONF_KEYS, type RV, type QZ, type RvCard } from "./practice.ts";
 import { recordCard, recordQuest, recordAnswer, previewIntervals, dueQueue, cardKey, cardRecall, DEFAULT_STATE_DIR } from "../practice/log.ts";
-import { recordAttempt, questItemKey, dropMistake } from "../practice/attempts.ts";
+import { recordAttempt, questItemKey, dropMistake, sureWrong } from "../practice/attempts.ts";
 import { essayScreen, lectureScreen, essayReady, type ES, type LC } from "./study3.ts";
 import { quizNoteScreen, type QN } from "./study6.ts";
 import { essayReqScreen, type ER } from "./study9.ts";
@@ -34,7 +34,9 @@ import { sourcesScreen, libraryScreen, webUrl, nsModal, nsFilesHtml, nsFromTrigg
 import { recreateLibrary, loadLibrary, saveLibrary, inspectFile, writeDropped, addVaultSource, addRemoteSource } from "../library-io.ts";
 import { essayPath, essayReqCmd } from "../data/essaynote.ts";
 import { quizPath, quizCmd, DEFAULT_QUIZ_DIR } from "../data/quiznote.ts";
-import { mistakesScreen, tdTitle, tdPhase, tdFate, tdAtt, tdDone, type TodayInfo } from "./study4.ts";
+import { mistakesScreen, tdTitle, tdPhase, tdFate, tdAtt, tdDone, tdCheckPhase, checkEssayScreen, type TodayInfo, type CK } from "./study4.ts";
+import { applyCheck } from "../data/tick.ts";
+import { dueChecks, toQItem, gradeShort, gradeEssay, checkKey } from "../data/checknote.ts";
 import { mistakeRows, todayQueue, doneToday, streakNow, type TdItem } from "../practice/today.ts";
 import { nextUp } from "./screens.ts";
 import { overdueDaysT } from "../data/index.ts";
@@ -73,6 +75,7 @@ export class StudyView extends ItemView {
   private er: ER | null = null;   // nhờ agent ra đề tự luận (7.9)
   private ma: MA | null = null;   // hộp Gắn học liệu
   private ns: NS | null = null;   // hộp Thêm nguồn (đợt 8a)
+  private ck: CK | null = null;   // đợt 9: câu kiểm tự luận đang làm trong phiên hôm nay
   private td: { items: TdItem<Topic, RvCard>[]; i: number; res: boolean[]; mode: "all" | "miss" } | null = null;   // phiên hôm nay (đợt 4)
   private lcShown: LC | null = null;   // lần mở bài giảng mà iframe hiện tại đang chạy
   private lcGoto: string | null = null;   // đợt 7: khối cần quay về sau khi nạp lại bài giảng (agent soạn lại khối)
@@ -99,6 +102,7 @@ export class StudyView extends ItemView {
     this.registerDomEvent(this.rootEl, "input", e => {
       const t = e.target as HTMLInputElement;
       if (t.matches("[data-qz-input]") && this.qz) this.qz.input = t.value;
+      if (t.matches("[data-ck-input]") && this.ck) { this.ck.text = t.value; this.rootEl.querySelector("[data-ck-show]")?.toggleAttribute("disabled", !t.value.trim()); }
       if (t.matches("[data-essay]") && this.es) this.essayInput(t.value);
       if (this.ns && t.matches("[data-nsq],[data-nslink],[data-nsnb],[data-nsname]")) this.nsInput(t);
       if (this.ma && t.matches("[data-mtq]")) { this.ma.q = t.value; const box = this.rootEl.querySelector(".mta .ns-files"); if (box) { const r = this.maFiles(); setHtml(box, matFilesHtml(this.ma, r.files, r.total, this.maHave())); } }
@@ -145,7 +149,7 @@ export class StudyView extends ItemView {
       cm: { src: path => this.cmaps.get(path)?.src, resolve: (l, from) => this.app.metadataCache.getFirstLinkpathDest(l, from)?.path ?? null, title: (l, from) => this.dimTitle(l, from) },
       lecInfo: t => this.lecStats.get(t.slug)?.stat, lectureDir: p.lectureDir(),
       lib: p.lib, resource: path => { const f = this.app.vault.getAbstractFileByPath(normalizePath(path)); return f instanceof TFile ? this.app.vault.getResourcePath(f) : null; },
-      essayFile: t => p.essayFor(t), quick: t => { const q = p.quickFor(t); return q && { ...q, last: p.practice.has(t) ? p.practice.get(t).quests?.[`${q.path}/quiz`]?.last : undefined }; },
+      essayFile: t => p.essayFor(t), checks: t => p.checks.find(x => x.topic.path === t.path)?.items || [], quick: t => { const q = p.quickFor(t); return q && { ...q, last: p.practice.has(t) ? p.practice.get(t).quests?.[`${q.path}/quiz`]?.last : undefined }; },
     };
   }
 
@@ -283,7 +287,7 @@ export class StudyView extends ItemView {
   private go(patch: Partial<View>) { Object.assign(this.S, patch); this.render(); }
 
   /* ── luyện tập ── */
-  private exit() { if (this.lr && this.S.screen === "lecreq") { const b = this.lr.back; this.lr = null; return this.go({ screen: b }); } if (this.qn && this.S.screen === "quiznote") { this.qn = null; return this.go({ screen: this.back }); } if (this.er && this.S.screen === "essreq") { const b = this.er.back; this.er = null; return this.go({ screen: b }); } if (this.td) { this.td = this.rv = this.qz = null; return this.go({ screen: "overview" }); } this.rv = this.qz = this.es = this.lc = null; this.go({ screen: ["review", "quiz", "essay", "lecture"].includes(this.back) ? "home" : this.back }); }
+  private exit() { if (this.lr && this.S.screen === "lecreq") { const b = this.lr.back; this.lr = null; return this.go({ screen: b }); } if (this.qn && this.S.screen === "quiznote") { this.qn = null; return this.go({ screen: this.back }); } if (this.er && this.S.screen === "essreq") { const b = this.er.back; this.er = null; return this.go({ screen: b }); } if (this.td) { this.td = this.rv = this.qz = this.ck = null; return this.go({ screen: "overview" }); } this.rv = this.qz = this.es = this.lc = null; this.go({ screen: ["review", "quiz", "essay", "lecture"].includes(this.back) ? "home" : this.back }); }
 
   /** Bài đang được học trên màn Pie Study (đường dẫn note) cho đồng hồ giờ học; null = không có bài nào đang làm. Giờ cộng cho bài của mục đang làm. */
   studyKey(): string | null {
@@ -417,16 +421,17 @@ export class StudyView extends ItemView {
     this.go({ screen: "review", more: false, sel: null });
   }
 
-  private flip() { const r = this.rv; if (!r || r.i >= r.queue.length || r.flip) return; const c = r.queue[r.i]; r.flip = true; r.previews = previewIntervals(this.plugin.practice.get(c.topic), c, new Date(), this.plugin.retentionOf(c.topic)).map(x => fmtGap(x.ms)); this.render(); }
+  private flip() { const r = this.rv; if (!r || r.i >= r.queue.length || r.flip || r.conf == null) return; const c = r.queue[r.i]; r.flip = true; r.previews = previewIntervals(this.plugin.practice.get(c.topic), c, new Date(), this.plugin.retentionOf(c.topic)).map(x => fmtGap(x.ms)); this.render(); }
 
   private async rate(k: number) {
     const r = this.rv; if (!r || !r.flip || r.i >= r.queue.length) return;
-    const c = r.queue[r.i], st = this.plugin.practice;
-    r.done.push(k); r.i++; r.flip = false;   // sang thẻ kế TRƯỚC khi ghi: bấm 2 lần nhanh không chấm 1 thẻ 2 lần
+    const c = r.queue[r.i], st = this.plugin.practice, conf = r.conf;
+    r.done.push(k); r.i++; r.flip = false; r.conf = undefined;   // sang thẻ kế TRƯỚC khi ghi: bấm 2 lần nhanh không chấm 1 thẻ 2 lần
     if (this.td && this.S.screen === "today") { this.td.res[this.td.i] = k >= 1; this.td.i++; this.tdPrep(); }
     this.render();
     const now = new Date();
-    await st.write(c.topic, recordAttempt(recordCard(st.get(c.topic), c, (k + 1) as Grade, now, this.plugin.retentionOf(c.topic)), { src: "card", key: cardKey(c.q), token: c.token, ok: k >= 1 }, now));
+    await st.write(c.topic, recordAttempt(recordCard(st.get(c.topic), c, (k + 1) as Grade, now, this.plugin.retentionOf(c.topic)), { src: "card", key: cardKey(c.q), token: c.token, ok: k >= 1, conf }, now));
+    if (r.i >= r.queue.length) { r.sure = sureWrong(st.all()); this.render(); }
     void this.plugin.syncBadges();
   }
 
@@ -621,7 +626,7 @@ export class StudyView extends ItemView {
   private queueOf(mode: "all" | "miss", mk = this.ctx().mk) {
     const now = new Date(), p = this.plugin;
     return mode === "miss" ? todayQueue(mk, [] as { topic: Topic; card: RvCard; recall: number }[], Infinity, 0)
-      : todayQueue(mk, this.dueCards(now), p.settings.sessionCap, doneToday(p.practice.all(), now));
+      : todayQueue(mk, this.dueCards(now), p.settings.sessionCap, doneToday(p.practice.all(), now), dueChecks(p.checks, t => p.practice.get(t).attempts || [], todayStr(now)));
   }
   /** Nhịp học: thẻ tới hạn của mọi nhật ký + bài tới hạn (learn_next) cho 14 ngày tới; days của mọi bài cho 12 tuần qua. */
   private rhythm() {
@@ -631,8 +636,8 @@ export class StudyView extends ItemView {
     return { f: forecast(logs.flatMap(l => Object.values(l.cards).map(c => c.due)), this.plugin.index.all, today), h: history(days, today), now: s.now, best: s.best };
   }
   private todayInfo(mk: Ctx["mk"]): TodayInfo {
-    const now = new Date(), logs = this.plugin.practice.all(), q = this.queueOf("all", mk), miss = q.items.filter(x => x.kind === "miss").length;
-    return { n: q.items.length, miss, cards: q.items.length - miss, later: q.later, done: doneToday(logs, now), streak: streakNow(logs, now) };
+    const now = new Date(), logs = this.plugin.practice.all(), q = this.queueOf("all", mk), miss = q.items.filter(x => x.kind === "miss").length, checks = q.items.filter(x => x.kind === "check").length;
+    return { n: q.items.length, miss, checks, cards: q.items.length - miss - checks, later: q.later, done: doneToday(logs, now), streak: streakNow(logs, now) };
   }
   startToday(mode: "all" | "miss") {
     const q = this.queueOf(mode);
@@ -643,7 +648,13 @@ export class StudyView extends ItemView {
   }
   /** Dựng màn cho mục đang tới: thẻ → một phiên ôn 1 thẻ; câu sai → một quest 1 câu (dùng lại màn luyện tập sẵn có). */
   private tdPrep() {
-    const d = this.td!, it = d.items[d.i]; this.rv = this.qz = null; if (!it) return;
+    const d = this.td!, it = d.items[d.i]; this.rv = this.qz = this.ck = null; if (!it) return;
+    if (it.kind === "check") {
+      if (it.item.kind === "essay") { this.ck = { text: "", shown: false, ticks: [] }; return; }
+      const z: QZ = { key: checkKey(it.item), title: tdTitle(d.mode), topic: it.topic, topics: [it.topic], items: [toQItem(it.item)], i: 0, res: [], st: {}, input: "", start: 0, phase: "ask", bet: 0,
+        coins: 100, selLeft: null, shuf: [], wrongAt: null, html: {}, img: () => "" };
+      freshItem(z); this.qz = z; return;
+    }
     if (it.kind === "card") { this.rv = { queue: [it.card], i: 0, flip: false, done: [], title: tdTitle(d.mode) }; return; }
     const r = it.row, qp = [...this.plugin.quests, ...this.plugin.quizQuests()].find(q => r.m.ref.startsWith((q.uid || q.path) + "/"))?.path || "";
     const z: QZ = { key: r.m.ref, title: tdTitle(d.mode), topic: r.topic, topics: [r.topic], items: [r.item!], i: 0, res: [], st: {}, input: "", start: 0, phase: "ask", bet: 0,
@@ -658,18 +669,34 @@ export class StudyView extends ItemView {
         still: C.mk.filter(r => r.m.status === "open" && !r.gone).length, streak: streakNow(logs, new Date()), mode: d.mode, old, next: nx?.nx, oldDays: old ? overdueDaysT(old, C.today) : 0, nextDom: nx ? domName(nx.d) : "" },
         old ? cmdReview(old) : "", nx?.nx ? cmdLearn(nx.nx) : "");
     }
-    const nMiss = d.items.filter(x => x.kind === "miss").length, it = d.items[d.i], miss = it.kind === "miss";
-    const phase = tdPhase(miss, miss ? d.i + 1 : d.i - nMiss + 1, miss ? nMiss : n - nMiss);
+    const nChk = d.items.filter(x => x.kind === "check").length, it = d.items[d.i];
+    if (it.kind === "check") { const ph = tdCheckPhase(d.i + 1, nChk); return it.item.kind === "essay" ? checkEssayScreen(top, ph, it.item, this.ck!) : quizScreen(C, this.qz!, { top, phase: ph }); }
+    const nMiss = d.items.filter(x => x.kind === "miss").length, miss = it.kind === "miss";
+    const phase = tdPhase(miss, miss ? d.i - nChk + 1 : d.i - nChk - nMiss + 1, miss ? nMiss : n - nChk - nMiss);
     return miss ? quizScreen(C, this.qz!, { top, phase, fate: tdFate, pill: tdAtt(it.row) }) : practiceReview(C, this.rv!, { top, phase });
   }
   /** Câu sai làm lại: sang mục kế TRƯỚC khi ghi (bấm đôi không ghi 2 dòng), rồi ghi lượt + áp luật gỡ/mở lại của sổ. */
   private async tdNext() {
-    const z = this.qz, d = this.td; if (!z || !d) return; const v = verdict(z); if (v == null) return;
+    const d = this.td; if (!d) return;
+    if (d.items[d.i]?.kind === "check") return this.ckNext();
+    const z = this.qz; if (!z) return; const v = verdict(z); if (v == null) return;
     const it = d.items[d.i]; if (it?.kind !== "miss") return;
     d.res[d.i] = v; d.i++; this.tdPrep(); this.render();
     const r = it.row, st = this.plugin.practice, q = r.item!;
     let log = st.get(r.topic); if (q.token) log = recordAnswer(log, q.token, v);
-    await st.write(r.topic, recordAttempt(log, { src: "quest", key: r.key, token: q.token, ok: v, q: itemText(q), ref: r.m.ref }, new Date()));
+    await st.write(r.topic, recordAttempt(log, { src: "quest", key: r.key, token: q.token, ok: v, conf: z.conf, q: itemText(q), ref: r.m.ref }, new Date()));
+    void this.plugin.syncBadges(); this.render();
+  }
+  /** Đợt 9: chốt câu kiểm (choice/short qua màn quiz, essay qua tick ý), sang mục kế trước khi ghi, rồi ghi lượt theo token. Ghi 2 trường learn_pending / learn_understood (spec 7.13 mục 7-9). */
+  private async ckNext() {
+    const d = this.td!, it = d.items[d.i]; if (it?.kind !== "check") return;
+    const c = it.item, v = c.kind === "essay" ? (this.ck?.shown ? gradeEssay(this.ck.ticks, c.points || []) : null) : this.qz ? verdict(this.qz) : null; if (v == null) return;
+    const conf = c.kind === "essay" ? undefined : this.qz?.conf;   // choice/short đi qua màn quiz nên có hỏi độ tự tin; essay không
+    d.res[d.i] = v; d.i++; this.tdPrep(); this.render();
+    const st = this.plugin.practice;
+    await st.write(it.topic, recordAttempt(recordAnswer(st.get(it.topic), c.token, v), { src: "check", key: checkKey(c), token: c.token, ok: v, conf }, new Date()));
+    const f = this.app.vault.getAbstractFileByPath(it.topic.path);
+    if (f instanceof TFile) await this.app.fileManager.processFrontMatter(f, (fm: Record<string, unknown>) => { const r = applyCheck(fm, c.token, v); if (r) Object.assign(fm, r); });   // chỉ đúng 2 trường learn_pending / learn_understood; không ở pending → không ghi
     void this.plugin.syncBadges(); this.render();
   }
   private imgOf(questPath: string) {
@@ -699,13 +726,13 @@ export class StudyView extends ItemView {
   private async next() {
     if (this.td && this.S.screen === "today") return this.tdNext();
     const z = this.qz; if (!z) return; const v = verdict(z); if (v == null) return;
-    z.res.push(v); (z.picks ||= []).push({ ...z.st, input: z.input });
+    z.res.push(v); (z.picks ||= []).push({ ...z.st, input: z.input }); (z.confs ||= [])[z.i] = z.conf;
     if (z.items[z.i].type === "auction") z.coins = Math.max(0, z.coins + (v ? z.bet : -z.bet)); z.i++; freshItem(z);
     if (z.i >= z.items.length) {   // xong node: ghi kết quả theo token vào nhật ký các bài liên quan
-      const graded = z.items.map((q, k) => ({ q, ok: z.res[k] })).filter(x => !isEssay(x.q));   // câu tự luận: trung tính, không tính là sai, không vào sổ
+      const graded = z.items.map((q, k) => ({ q, ok: z.res[k], conf: z.confs?.[k] })).filter(x => !isEssay(x.q));   // câu tự luận: trung tính, không tính là sai, không vào sổ
       const st = this.plugin.practice, results = graded.map(x => ({ token: x.q.token, ok: x.ok }));
       const now = new Date(), main = z.topic || z.topics[0];   // từng lượt + sổ lỗi sai ghi vào bài chính (boss nhiều bài: bài đầu), để sổ không lặp
-      const withAttempts = (log: PracticeLog) => graded.reduce((l, { q, ok }) => recordAttempt(l, { src: "quest", key: questItemKey(itemText(q)), token: q.token, ok, assisted: z.redo, q: itemText(q), ref: z.key }, now), log);
+      const withAttempts = (log: PracticeLog) => graded.reduce((l, { q, ok, conf }) => recordAttempt(l, { src: "quest", key: questItemKey(itemText(q)), token: q.token, ok, conf, assisted: z.redo, q: itemText(q), ref: z.key }, now), log);
       for (const t of z.topics) { const log = recordQuest(st.get(t), z.key, results, now); await st.write(t, t === main ? withAttempts(log) : log); }
       void this.plugin.syncBadges();
     }
@@ -716,13 +743,27 @@ export class StudyView extends ItemView {
     if (!this.rootEl?.isConnected || !this.containerEl.isShown()) return;
     if (e.key === "Escape") { if (this.ns) { this.ns = null; return this.render(); } if (this.S.more) return this.go({ more: false }); if (this.S.screen === "badges" && this.S.badge) return this.go({ badge: "" }); if ((this.qn && this.S.screen === "quiznote") || (this.er && this.S.screen === "essreq") || this.td || this.rv || this.qz || this.es || this.lc) return this.exit(); }
     if ((e.target as HTMLElement).closest?.("input,textarea,select,[contenteditable]")) { if (e.key === "Enter" && this.qz && (e.target as HTMLElement).matches("[data-qz-input]")) this.check(); return; }
+    const conf = e.metaKey || e.ctrlKey || e.altKey || e.key.length !== 1 ? -1 : CONF_KEYS.indexOf(e.key.toLowerCase());
+    if ((this.S.screen === "quiz" || this.S.screen === "today") && this.qz && conf >= 0 && needConf(this.qz)) return this.pickConf(conf);
     if ((this.S.screen === "review" || this.S.screen === "today") && this.rv) {
       if (e.key === " ") { e.preventDefault(); this.flip(); }
+      else if (!this.rv.flip && conf >= 0) this.pickConf(conf);
       else if ("1234".includes(e.key) && e.key.length === 1) void this.rate(+e.key - 1);
     }
     if ((this.S.screen === "quiz" || this.S.screen === "today") && this.qz && e.key === "Enter" && verdict(this.qz) != null) void this.next();
   }
-  private check() { const z = this.qz; if (!z || z.st.checked != null) return; z.st.checked = gradeInput(z.input, z.items[z.i]); this.render(); }
+  /** Đợt 9: chọn 1 trong 3 mức tự tin (thẻ: trước khi lật; quest: trước khi hiện phương án, đồng hồ bắt đầu từ đây). */
+  private pickConf(k: number) {
+    if (this.rv && !this.rv.flip) this.rv.conf = k;
+    else if (this.qz && needConf(this.qz)) { this.qz.conf = k; this.qz.start = Date.now(); }
+    else return;
+    this.render();
+  }
+  private check() {
+    const z = this.qz; if (!z || z.st.checked != null) return;
+    const it = this.S.screen === "today" ? this.td?.items[this.td.i] : undefined;
+    z.st.checked = it?.kind === "check" ? gradeShort(z.input, it.item.accept || []) : gradeInput(z.input, z.items[z.i]); this.render();
+  }
 
   /** Đồng hồ: chỉ cập nhật số giây; hết giờ thì chốt sai (countdown/chain) hoặc chuyển từ "nhìn" sang "hỏi" (snapshot/palace). */
   private tick() {
@@ -755,19 +796,23 @@ export class StudyView extends ItemView {
     if (this.S.more && !target.closest(".q-more")) { this.S.more = false; if (!target.closest("[data-go],[data-bob],[data-copy],[data-ttab],[data-sel],[data-open]")) return this.render(); }   // bấm ra ngoài thì đóng bảng Thêm
     if (target.closest("[data-more]")) return this.go({ more: !this.S.more });
     const bd = target.closest<HTMLElement>("[data-badge]"); if (bd) return this.go({ badge: bd.dataset.badge || "" });
-    const pr = target.closest<HTMLElement>("[data-exit],[data-flip],[data-rate],[data-pick],[data-ord],[data-ml],[data-mr],[data-bet],[data-qz-phase],[data-qnext],[data-qz-check],[data-qz-redo],[data-review],[data-quest],[data-migrate],[data-essay-submit],[data-essay-copy],[data-essay-again]");
+    const pr = target.closest<HTMLElement>("[data-exit],[data-conf],[data-flip],[data-rate],[data-pick],[data-ord],[data-ml],[data-mr],[data-bet],[data-qz-phase],[data-qnext],[data-qz-check],[data-qz-redo],[data-review],[data-quest],[data-migrate],[data-essay-submit],[data-essay-copy],[data-essay-again],[data-ck-show],[data-ck-tick],[data-ck-done]");
     if (pr) {
       const d = pr.dataset;
       if ("exit" in d) return this.exit();
       if ("flip" in d) return this.flip();
+      if (d.conf != null) return this.pickConf(+d.conf);
       if (d.rate) return void this.rate(+d.rate);
       if (d.pick && this.qz && this.qz.st.pick == null) { this.qz.st = { ...this.qz.st, pick: +d.pick }; return this.render(); }
       if (d.ord != null || d.ml != null || d.mr != null) return this.pickItem(d);
       if (d.bet && this.qz) { this.qz.bet = +d.bet; this.qz.phase = "ask"; this.qz.start = Date.now(); return this.render(); }
       if ("qzPhase" in d && this.qz) { this.qz.phase = this.qz.items[this.qz.i].type === "auction" ? "bet" : "ask"; this.qz.start = Date.now(); return this.render(); }
       if ("qnext" in d) return void this.next();
+      if ("ckShow" in d && this.ck?.text.trim()) { this.ck.shown = true; return this.render(); }
+      if (d.ckTick && this.ck) { const j = +d.ckTick; this.ck.ticks = this.ck.ticks.slice(); this.ck.ticks[j] = !this.ck.ticks[j]; return this.render(); }
+      if ("ckDone" in d) return void this.ckNext();
       if ("qzCheck" in d) return this.check();
-      if ("qzRedo" in d && this.qz) { Object.assign(this.qz, { i: 0, res: [], picks: [], sel: undefined, redo: true, coins: this.qz.items.find(x => x.coins)?.coins || 100 }); freshItem(this.qz); return this.render(); }
+      if ("qzRedo" in d && this.qz) { Object.assign(this.qz, { i: 0, res: [], picks: [], confs: [], sel: undefined, redo: true, coins: this.qz.items.find(x => x.coins)?.coins || 100 }); freshItem(this.qz); return this.render(); }
       if (d.review != null) return this.startReview(d.review ? { topic: d.review } : { dom: this.S.dom });
       if (d.quest) return this.startQuest(d.quest.startsWith("boss:") ? { boss: d.quest.slice(5).split(",") } : { topic: d.quest });
       if (d.migrate) return void this.plugin.migrateEngram(d.migrate === "write");

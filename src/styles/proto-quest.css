@@ -581,3 +581,8 @@
 .q-tabbar button { white-space: nowrap; min-width: 0; }
 /* sổ học: chừa khoảng giữa khối đầu trang và thẻ bài đầu (sổ không chia nhóm thì không có header nhóm đệm) */
 .qd .nb > .t-head { margin-bottom: 24px; }
+/* đợt 9: token tạm (learn_pending) = vòng nét đứt; xanh / đặc chỉ dành cho learn_understood */
+.q-17 i.pend { background: transparent; outline: 1.5px dashed var(--c); outline-offset: -1.5px; }
+.q-stamp.pend i { color: #fff; border: 2.5px dashed #fff; background: rgba(255,255,255,.22); }
+.tok.pend .ck { box-shadow: none; outline: 1.5px dashed var(--pa-ink-3); outline-offset: -1.5px; color: var(--pa-ink-3); }
+.tok.pend { color: var(--pa-ink-2); }

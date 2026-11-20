@@ -33,7 +33,7 @@ export const groupsOf = (C: Ctx, d: Domain) => mapGroups(d, C.sohoc.get(d.id)?.d
 function qPop(C: Ctx, t: Topic, side: string) {   // bảng bật ra khi chạm một nút
   const st = t.status, A = C.agent;
   return `<div class="q-pop ${side}" data-k="${esc(t.slug)}"><small>${tr("Bài {0}", qNum(t))} · ${qSt(t)}</small><b>${esc(qTitle(t))}</b>
-    <div class="q-17">${RUBRIC.flatMap(g => g[1]).map(k => `<i class="${t.und.includes(k[0]) ? "on" : ""}${k[3] ? " c" : ""}" title="${esc(tokName(k[0]))}"></i>`).join("")}</div><p>${tr("{0}/17 kiểu hiểu đã chứng minh", t.und.length)}${t.cards ? " · " + tr("{0} thẻ ôn", t.cards) : ""}</p>
+    <div class="q-17">${RUBRIC.flatMap(g => g[1]).map(k => `<i class="${t.und.includes(k[0]) ? "on" : t.pend?.includes(k[0]) ? "pend" : ""}${k[3] ? " c" : ""}" title="${esc(tokName(k[0]))}"></i>`).join("")}</div><p>${tr("{0}/17 kiểu hiểu đã chứng minh", t.und.length)}${t.cards ? " · " + tr("{0} thẻ ôn", t.cards) : ""}</p>
     ${qBtn(C, st === "new" ? tr("Bắt đầu với {0}", A) : t.due ? tr("Ôn với {0}", A) : tr("Học tiếp với {0}", A), t.due ? cmdReview(t) : cmdLearn(t))}
     ${testOutBtn(C, t, "pop")}
     <div class="q-pop-row">${st !== "new" && t.cards ? `<button class="qb o" data-review="${esc(t.slug)}">${tr("Ôn thẻ")}</button>` : ""}${st !== "new" && C.quests.some(q => q.topics.includes(t.slug)) ? `<button class="qb o" data-quest="${esc(t.slug)}">${tr("Quest")}</button>` : ""}<button class="qb o" data-go="topic" data-topic="${esc(t.slug)}">${tr("Chi tiết")}</button></div></div>`;
@@ -92,7 +92,7 @@ function rail(C: Ctx, d: Domain, groups: Group[], nx?: Topic): { hero: string; s
     const gi = Math.max(0, groups.findIndex(g => g.list.includes(nx))), P = QPAL[gi % QPAL.length], gn = kick(groupName(groups[gi] || { name: "", list: [] })), got = CORE.filter(c => nx.und.includes(c)).length;
     // thẻ bài học: màu của tầng chứa bài + 5 ô con dấu core — chỉ đếm cái cần để "nắm cơ bản"
     hero = `<div class="q-card q-hero" style="--c:${P[0]};--d:${P[1]}" data-hero="${esc(nx.slug)}"><div class="q-hero-top">${gn ? `<em class="q-kick">${esc(gn)}</em>` : ""}<small>${tr("Bài kế tiếp · bài {0}", qNum(nx))}</small></div><b>${esc(qTitle(nx))}</b>
-      <div class="q-stamps">${CORE.map((c, k) => `<span class="q-stamp ${nx.und.includes(c) ? "on" : ""}" style="--r:${[-8, 5, -3, 7, -6][k]}deg" data-tok="${c}"><i>${nx.und.includes(c) ? i("check", 18) : k + 1}</i><small>${esc(tokName(c))}</small></span>`).join("")}</div>
+      <div class="q-stamps">${CORE.map((c, k) => `<span class="q-stamp ${nx.und.includes(c) ? "on" : nx.pend?.includes(c) ? "pend" : ""}" style="--r:${[-8, 5, -3, 7, -6][k]}deg" data-tok="${c}"><i>${nx.und.includes(c) ? i("check", 18) : nx.pend?.includes(c) ? i("clock", 16) : k + 1}</i><small>${esc(tokName(c))}</small></span>`).join("")}</div>
       <p>${got ? tr("{0}/5 dấu cốt lõi", got) : tr("Lấy đủ 5 dấu")} ${tr("= nắm cơ bản · {0} kiểu hiểu mở rộng để sau", 17 - CORE.length)}</p><div class="q-perf"></div>
       ${qBtn(C, nx.status === "new" ? tr("Bắt đầu với {0}", C.agent) : tr("Học tiếp với {0}", C.agent), cmdLearn(nx), "y w100")}</div>`;
   }

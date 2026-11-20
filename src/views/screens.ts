@@ -13,7 +13,7 @@ import { groupsOf, qDone, groupName } from "./map.ts";
 import { rhythmBlock, testOutBtn } from "./study5.ts";
 import { matsTab, topicMats } from "./study13.ts";
 import { mapTab } from "./study14.ts";
-import { mkTopicLine, todayBtn, tokMeter, tokTip, tokWarn, tokWarnText } from "./study4.ts";
+import { tickLines, mkTopicLine, todayBtn, tokMeter, tokTip, tokWarn, tokWarnText } from "./study4.ts";
 
 const domTitle = (C: Ctx, id: string) => domName(C.idx.domains.find(d => d.id === id)) || id;
 const domIdx = (C: Ctx, id: string) => Math.max(0, C.idx.domains.findIndex(d => d.id === id));
@@ -77,9 +77,9 @@ export function topicScreen(C: Ctx) {
     ${cards.length ? `<button class="btn" data-review="${esc(t.slug)}">${i("cards")}${tr("Ôn thẻ")}${dueCards ? ` <span class="c">${dueCards}</span>` : ""}</button>` : ""}${hasQuest ? `<button class="btn" data-quest="${esc(t.slug)}">${i("quest")}${tr("Làm quest")}</button>` : ""}<button class="btn" data-qreq="${esc(t.path)}">${i("zap", 14)}${tr("Quiz nhanh")}</button>
     ${essayBtn(C, t)}${lecBtn(C, t)}<button class="btn ghost" data-open="${esc(t.path)}">${i("file")}${tr("Mở note")}</button></div></div>
     ${ring(t.und.length, 17, 112, 8, qDone(t))}</div>
-    ${warn.length ? `<div class="note-call">${i("alert")}<div>${tokWarnText(C, log, warn)}</div></div>` : ""}${mkTopicLine(C, t)}
+    ${warn.length ? `<div class="note-call">${i("alert")}<div>${tokWarnText(C, log, warn)}</div></div>` : ""}${mkTopicLine(C, t)}${tickLines(C, t)}
     <div class="sec"><div class="sec-h"><h2 class="t">${tr("17 kiểu hiểu")}</h2><span class="c">${tr("rê chuột để xem tiêu chí đạt")} · ${tr("vạch bên phải là độ vững khi luyện tập")}</span></div><div class="tokgrid">
-    ${RUBRIC.map(([g, l]) => `<div class="tokg"><h6>${tr(g)}</h6>${l.map(k => `<div class="tok ${t.und.includes(k[0]) ? "on" : ""} ${k[3] ? "core" : ""} ${warn.includes(k[0]) ? "warn" : ""}"><span class="ck">${t.und.includes(k[0]) ? i("check", 11) : ""}</span><span class="nm">${esc(tokName(k[0]))}</span>${tokMeter(log, k[0])}<span class="tip"><b>${k[0]}</b> — ${tr("đạt khi tự {0}.", tr(k[2]))}${tokTip(log, k[0])}</span></div>`).join("")}</div>`).join("")}</div></div>
+    ${RUBRIC.map(([g, l]) => `<div class="tokg"><h6>${tr(g)}</h6>${l.map(k => `<div class="tok ${t.und.includes(k[0]) ? "on" : t.pend?.includes(k[0]) ? "pend" : ""} ${k[3] ? "core" : ""} ${warn.includes(k[0]) ? "warn" : ""}"><span class="ck">${t.und.includes(k[0]) ? i("check", 11) : t.pend?.includes(k[0]) ? i("clock", 11) : ""}</span><span class="nm">${esc(tokName(k[0]))}</span>${tokMeter(log, k[0])}<span class="tip"><b>${k[0]}</b> — ${tr("đạt khi tự {0}.", tr(k[2]))}${t.pend?.includes(k[0]) ? " " + tr("Đang chờ lượt kiểm độc lập.") : ""}${tokTip(log, k[0])}</span></div>`).join("")}</div>`).join("")}</div></div>
     <div class="tabs">${tabs.map(([k, l, n]) => `<button class="${C.S.ttab === k ? "on" : ""}" data-ttab="${k}">${l}${n != null ? `<span class="c">${n}</span>` : ""}</button>`).join("")}</div>${topicTab(C, t, ses, cards)}</div>`;
 }
 const groupIdx = (C: Ctx, t: Topic) => { const d = C.idx.domains.find(x => x.id === t.dom); return d ? Math.max(0, groupsOf(C, d).findIndex(g => g.list.includes(t))) : 0; };
@@ -162,7 +162,7 @@ export function settingsScreen(C: Ctx) {
     <div class="set-h">${tr("Ôn tập")}</div>${r(tr("Mục tiêu nhớ"), tr("FSRS lên lịch để xác suất còn nhớ khi tới hạn đạt mức này."), `<select data-set-retention>${[0.85, 0.9, 0.95].map(v => `<option value="${v}" ${C.settings.retention === v ? "selected" : ""}>${Math.round(v * 100)}%</option>`).join("")}</select>`)}
     ${r(tr("Thẻ mới mỗi ngày"), tr("Giới hạn thẻ chưa từng ôn được đưa vào mỗi ngày."), `<select data-set-newday>${[10, 20, 50].map(v => `<option value="${v}" ${C.settings.newPerDay === v ? "selected" : ""}>${v}</option>`).join("")}</select>`)}
     ${r(tr("Trần phiên hôm nay"), tr("Số mục tối đa mỗi ngày (5–100). Mục đã làm trong ngày trừ vào trần."), `<input type="number" data-set-sessioncap min="5" max="100" step="1" value="${C.settings.sessionCap}">`)}
-    ${r(tr("Phím tắt khi ôn"), tr("Space lật thẻ · 1–4 tự chấm · Esc thoát."), "")}
+    ${r(tr("Phím tắt khi ôn"), tr("A S D chọn độ tự tin · Space lật thẻ · 1–4 tự chấm · Esc thoát."), "")}
     ${retentionBlock(C)}
     ${C.agentReady ? `<div class="set-h">${tr("Nhịp học")}</div>${r(tr("Đo giờ học"), tr("Đếm khi đang ở màn Pie Study hoặc đang đọc note bài học, dừng sau 2 phút không thao tác. Chỉ lưu trên máy này. Học với {0} và học ngoài máy chưa đếm.", esc(C.agent)), `<button class="toggle ${C.settings.timeTrack ? "on" : ""}" data-set-timetrack aria-pressed="${C.settings.timeTrack}" aria-label="${tr("Đo giờ học")}"></button>`)}` : ""}
     <div class="set-h">${tr("Chuyển từ EngramQuest")}</div>${r(tr("Lịch ôn và kết quả quest cũ"), tr("Đọc một lần từ engram-review/sr và engram-quest/state. Không xoá dữ liệu cũ, không ghi đè lịch mới hơn."), `<span style="display:flex;gap:8px"><button class="btn" data-migrate="scan">${i("refresh")}${tr("Quét")}</button>${C.migration ? `<button class="btn pri" data-migrate="write">${tr("Chuyển")}</button>` : ""}</span>`)}

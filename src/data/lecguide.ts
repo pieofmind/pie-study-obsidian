@@ -4,6 +4,7 @@
 export const PIE_STUDY_DIR = "Pie Study";
 export const GUIDE_PATH = `${PIE_STUDY_DIR}/huong-dan-soan-bai-giang.md`;
 export const QUIZ_GUIDE_PATH = `${PIE_STUDY_DIR}/huong-dan-soan-quiz.md`;
+export const CHECK_GUIDE_PATH = `${PIE_STUDY_DIR}/huong-dan-kiem.md`;   // đợt 9: có file này = skill bật chế độ kiểm độc lập
 export const DEFAULT_LECTURE_DIR = `${PIE_STUDY_DIR}/lectures`;
 
 const firstLine = (s: string) => s.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0].trim();

@@ -61,3 +61,12 @@ button { white-space: normal; }   /* Obsidian đặt nowrap cho nút → chữ d
 .pom-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
 .pom-link { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--ln); background: var(--bg2); color: var(--ink); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
 .pom-link:hover { background: var(--card); }
+/* Đợt 9: 3 mức tự tin trước khi lật / trả lời */
+.conf-row { margin-top: 18px; display: flex; flex-direction: column; gap: 8px; }
+.conf-l { font-size: 13px; color: var(--ink2); }
+.conf-b { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.conf-b .opt { justify-content: center; gap: 8px; }
+.conf-b .opt.sel { border-color: var(--c); }
+.sure-w { margin-top: 22px; text-align: left; }
+.sure-w ul { margin: 8px 0 0; padding-left: 18px; }
+.sure-w li { margin: 4px 0; }

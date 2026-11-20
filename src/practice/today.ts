@@ -4,6 +4,7 @@ import { itemText, type Quest, type QItem } from "../data/quest.ts";
 import { questItemKey } from "./attempts.ts";
 import type { PracticeLog, Mistake } from "./log.ts";
 import { streaks } from "./rhythm.ts";
+import type { CheckItem } from "../data/checknote.ts";
 
 const localDay = (iso: string) => todayStr(new Date(iso));
 
@@ -28,11 +29,12 @@ export function mistakeRows<T>(entries: { topic: T; log: PracticeLog }[], quests
   return out.sort((a, b) => b.m.last.localeCompare(a.m.last));
 }
 
-export type TdItem<T, C> = { kind: "miss"; row: MkRow<T> } | { kind: "card"; topic: T; card: C };
+export type TdItem<T, C> = { kind: "miss"; row: MkRow<T> } | { kind: "card"; topic: T; card: C } | { kind: "check"; topic: T; item: CheckItem };
 /** Hàng đợi phiên hôm nay (spec 7.4 việc 3): câu sai làm lại được TRƯỚC (ít, là lỗ hổng đã biết, không để thẻ tới hạn chèn mất lượt),
-    rồi thẻ tới hạn khả năng nhớ thấp trước. Trần = cap trừ mục đã làm trong ngày; phần dư (later) để hôm sau. */
-export function todayQueue<T, C>(rows: MkRow<T>[], cards: { topic: T; card: C; recall: number }[], cap: number, done: number) {
-  const all: TdItem<T, C>[] = [...rows.filter(r => r.ready).map(row => ({ kind: "miss" as const, row })),
+    rồi thẻ tới hạn khả năng nhớ thấp trước. Trần = cap trừ mục đã làm trong ngày; phần dư (later) để hôm sau.
+    Đợt 9: câu kiểm độc lập tới hạn đứng đầu (có ngày hẹn riêng, không để câu sai / thẻ đẩy lùi). */
+export function todayQueue<T, C>(rows: MkRow<T>[], cards: { topic: T; card: C; recall: number }[], cap: number, done: number, checks: { topic: T; item: CheckItem }[] = []) {
+  const all: TdItem<T, C>[] = [...checks.map(c => ({ kind: "check" as const, topic: c.topic, item: c.item })), ...rows.filter(r => r.ready).map(row => ({ kind: "miss" as const, row })),
     ...[...cards].sort((a, b) => a.recall - b.recall).map(c => ({ kind: "card" as const, topic: c.topic, card: c.card }))];
   const items = all.slice(0, Math.max(0, cap - done));
   return { items, later: all.length - items.length };

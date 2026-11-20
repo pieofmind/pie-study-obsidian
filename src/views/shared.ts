@@ -1,5 +1,6 @@
 /* Mảnh dùng chung — port từ prototype app.js / quest.js (kiểu D). */
 import { tr } from "../i18n.ts";
+import { CHECK_GUIDE_PATH } from "../data/lecguide.ts";
 import { RUBRIC, TOKNAME } from "../data/rubric.ts";
 import type { Topic, Index, Domain } from "../data/index.ts";
 import type { SoHoc } from "../data/sohoc.ts";
@@ -78,6 +79,7 @@ export interface Ctx {
   cm: { src: (path: string) => string | null | undefined; resolve: (link: string, from: string) => string | null; title: (link: string, from: string) => string };   // sơ đồ khái niệm: khối mermaid đã đọc (undefined = đang đọc), resolve liên kết, tên dimension
   lecInfo: (t: Topic) => { blocks: number; ungrounded: number } | undefined;   // số liệu bài giảng đã đọc (cache theo mtime); chưa đọc → undefined
   lectureDir: string;
+  checks: (t: Topic) => { token: string }[];   // câu kiểm hợp lệ của bài (đợt 9)
   quick: (t: Topic) => { path: string; n: number; last?: string } | null;   // quiz nhanh hợp lệ (7.9)
   rhythm: () => import("./study5.ts").Rhythm;   // khối Nhịp học (đợt 5, tính khi cần)
   todayInfo: () => { n: number; miss: number; cards: number; later: number; done: number; streak: number };   // nút Phiên hôm nay (tính khi cần)
@@ -89,6 +91,7 @@ export const findT = (C: Ctx, slug: string) => C.idx.all.find(t => t.slug === sl
 
 export const cmdLearn = (t: Topic) => `học tiếp ${t.dom}: [[${t.slug}]]`;
 export const cmdReview = (t: Topic) => `ôn bài [[${t.slug}]]`;
+export const cmdCheck = (t: Topic, toks: string[]) => `soạn câu kiểm cho [[${t.slug}]] theo ${CHECK_GUIDE_PATH} — token: ${toks.join(", ")}`;
 export const cmdNewPath = (topic = "") => `thiết kế lộ trình học ${topic}`.trim();
 
 /** Nút gọi Pie Agent (kiểu D). Không có API ask → "Chép lệnh". */

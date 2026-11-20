@@ -21,9 +21,11 @@ import { LIB_PATH, SRC_DIR, tocPathOf } from "./data/library.ts";
 import { setRetention, logFileName, retentionFor, DEFAULT_STATE_DIR } from "./practice/log.ts";
 import { DEFAULT_QUIZ_DIR, vetQuiz, type Vetted } from "./data/quiznote.ts";
 import { vetEssay, type EssayFilePrompt, type EssayVet } from "./data/essaynote.ts";
-import { DEFAULT_LECTURE_DIR, GUIDE_PATH, QUIZ_GUIDE_PATH, PIE_STUDY_DIR, guideNeedsWrite } from "./data/lecguide.ts";
+import { DEFAULT_LECTURE_DIR, GUIDE_PATH, QUIZ_GUIDE_PATH, CHECK_GUIDE_PATH, PIE_STUDY_DIR, guideNeedsWrite } from "./data/lecguide.ts";
 import GUIDE from "./lecture-guide.md";
 import QUIZ_GUIDE from "./quiz-guide.md";
+import CHECK_GUIDE from "./check-guide.md";
+import { parseCheck, checkFor, type CheckItem } from "./data/checknote.ts";
 import { migrateEngram, type MigrateReport, type SrEntry, type QuestState } from "./practice/migrate.ts";
 
 interface Settings { folder: string; motion: boolean; stateDir: string; retention: number; newPerDay: number; sessionCap: number; quizDir: string; lectureDir: string; retentionByDomain: Record<string, number>; timeTrack: boolean; solidSeeded: boolean; installDay: string }
@@ -39,6 +41,7 @@ export default class PieStudyPlugin extends Plugin {
   cards = new Map<string, CardT[]>();
   quests: Quest[] = [];
   essays = new Map<string, { prompt: EssayFilePrompt; note: string }>();   // file đề tự luận (7.9) đã kiểm trích dẫn, theo đường dẫn file đề
+  checks: { topic: Topic; items: CheckItem[] }[] = [];   // đợt 9: file kiểm độc lập .check.md, câu đã qua kiểm khuôn + trích dẫn
   quizzes = new Map<string, { quest: Quest; note: string }>();   // file quiz note (đợt 6) đã kiểm trích dẫn, theo đường dẫn file quiz
   outside: Topic[] = [];   // note ngoài lộ trình có quiz / nhật ký
   practice = new PracticeStore(this.app, () => this.settings.stateDir || DEFAULTS.stateDir);
@@ -213,7 +216,7 @@ export default class PieStudyPlugin extends Plugin {
   lectureDir() { return (this.settings.lectureDir || DEFAULT_LECTURE_DIR).replace(/\/+$/, ""); }
   /** File hướng dẫn cho agent (bài giảng 7.8; quiz nhanh + đề tự luận 8b). Ghi khi chưa có hoặc khác phiên bản (dòng tiêu đề); sửa tay giữ tiêu đề thì để yên. */
   async ensureGuide() {
-    for (const [path, text] of [[GUIDE_PATH, GUIDE], [QUIZ_GUIDE_PATH, QUIZ_GUIDE]] as const) {
+    for (const [path, text] of [[GUIDE_PATH, GUIDE], [QUIZ_GUIDE_PATH, QUIZ_GUIDE], [CHECK_GUIDE_PATH, CHECK_GUIDE]] as const) {
       try {
         const v = this.app.vault, f = v.getAbstractFileByPath(path);
         if (!guideNeedsWrite(f instanceof TFile ? await v.read(f) : null, text)) continue;
@@ -256,7 +259,15 @@ export default class PieStudyPlugin extends Plugin {
     const dir = this.quizDir(); this.quizzes = new Map(); this.essays = new Map();
     for (const f of this.app.vault.getFiles().filter(x => x.path.startsWith(dir + "/") && x.name.endsWith(".essay.md"))) { try { await this.vetEssayFile(f.path); } catch (e) { console.error("[pie-study] không đọc được đề tự luận", f.path, e); } }
     for (const f of this.app.vault.getFiles().filter(x => x.path.startsWith(dir + "/") && x.name.endsWith(".quiz.md"))) { try { await this.vetQuizFile(f.path); } catch (e) { console.error("[pie-study] không đọc được quiz", f.path, e); } }
-    const paths = new Set([...[...this.quizzes.values()].map(x => x.note), ...this.practice.loosePaths()]);
+    const checks: { topic: Topic; items: CheckItem[] }[] = [];
+    for (const f of this.app.vault.getFiles().filter(x => x.path.startsWith(dir + "/") && x.name.endsWith(".check.md"))) {
+      try {
+        const text = await this.app.vault.read(f), link = checkFor(text), nf = link ? this.app.metadataCache.getFirstLinkpathDest(link, f.path) : null, topic = nf ? this.topicFor(nf.path) : null;
+        if (nf && topic) checks.push({ topic, items: parseCheck(text, await this.app.vault.cachedRead(nf), parseYaml) });
+      } catch (e) { console.error("[pie-study] không đọc được file kiểm", f.path, e); }
+    }
+    this.checks = checks;
+    const paths = new Set([...[...this.quizzes.values()].map(x => x.note), ...checks.map(x => x.topic.path), ...this.practice.loosePaths()]);
     this.outside = [...paths].map(p => this.topicFor(p)).filter((t): t is Topic => !!t?.outside);
   }
 
