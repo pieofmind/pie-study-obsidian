@@ -8,6 +8,8 @@ export { Rating };
 export const DEFAULT_STATE_DIR = "Pie Study/practice";
 
 export interface CardState { token?: string; q: string; due: string; stability: number; difficulty: number; state: number; reps: number; lapses: number; steps: number; last: string }
+/** Phần lịch FSRS dùng chung cho thẻ và câu kiểm. */
+export type SchedState = Omit<CardState, "q" | "token">
 export interface QuestState { scorePct: number; attempts: number; last: string }
 export interface Tally { ok: number; miss: number }
 export interface PracticeLog {
@@ -21,11 +23,14 @@ export interface PracticeLog {
   strength?: Record<string, number>;
   /** Đợt 8a (spec 7.10): ngày nắm cơ bản (đủ 5 cốt lõi) và giờ học đo được theo ngày địa phương (giữ 400 ngày). */
   solidAt?: SolidAt; secs?: Record<string, number>;
+  /** Lịch kiểm lại từng câu kiểm độc lập (khoá chk:), FSRS đạt/không đạt. Tuỳ chọn: log cũ không có thì dựng từ attempts (checkState). */
+  checks?: Record<string, SchedState>;
 }
 export interface SolidAt { t: string; est?: true; lost?: string }
 export type AttemptSrc = "card" | "quest" | "lecture" | "check";
 /** conf (đợt 9, spec 7.13): độ tự tin chọn trước khi lật/trả lời — 0 Đoán · 1 Khá chắc · 2 Chắc chắn. Log cũ không có. */
-export interface Attempt { t: string; src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean; conf?: number }
+/** rating: mức chấm 1–4 của thẻ ôn (Quên/Khó/Được/Dễ), lưu để sau này đủ dữ liệu thì tối ưu trọng số FSRS. Lượt khác chỉ có ok. */
+export interface Attempt { t: string; src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean; conf?: number; rating?: number }
 export interface Mistake { src: "quest" | "lecture"; token?: string; q: string; ref: string; first: string; last: string; misses: number; status: "open" | "cleared"; clearedAt?: string }
 export interface CardRef { q: string; token?: string }
 
@@ -62,7 +67,7 @@ export function firstGoodIntervals(r: number): number[] {
   return gaps;
 }
 
-const toCard = (s: CardState | undefined, now: Date): Card => s ? {
+const toCard = (s: SchedState | undefined, now: Date): Card => s ? {
   due: new Date(s.due), stability: s.stability, difficulty: s.difficulty, elapsed_days: 0, scheduled_days: 0, learning_steps: s.steps || 0,
   reps: s.reps, lapses: s.lapses, state: s.state, last_review: new Date(s.last),
 } as Card : createEmptyCard(now);
@@ -81,6 +86,30 @@ export function recordCard(log: PracticeLog, c: CardRef, rating: Grade, now: Dat
   const day = todayStr(now), prev = log.cards[key], onDay = !!prev && todayStr(new Date(prev.due)) === day;
   return { ...log, cards: { ...log.cards, [key]: st }, tokens: tally(log.tokens, c.token, rating !== Rating.Again),
     days: { ...log.days, [day]: (log.days?.[day] || 0) + 1 }, ontime: (log.ontime || 0) + (onDay ? 1 : 0) };
+}
+
+/** Sàn khoảng kiểm lại (ngày): đạt thì không hỏi lại câu cũ quá sớm (dễ thành thuộc đáp án), sai thì cho thời gian ôn trước khi kiểm lại. */
+export const CHECK_FLOOR = { ok: 7, miss: 2 };
+const DAY_MS = 864e5;
+function stepCheck(prev: SchedState | undefined, ok: boolean, now: Date, ret?: number): SchedState {
+  const next = F(ret).next(toCard(prev, now), now, ok ? Rating.Good : Rating.Again).card;
+  const due = Math.max(next.due.getTime(), now.getTime() + (ok ? CHECK_FLOOR.ok : CHECK_FLOOR.miss) * DAY_MS);
+  return { due: new Date(due).toISOString(), stability: +next.stability.toFixed(4), difficulty: +next.difficulty.toFixed(4),
+    state: next.state, reps: next.reps, lapses: next.lapses, steps: next.learning_steps, last: now.toISOString() };
+}
+/** Lịch của một câu kiểm: đã lưu thì lấy, chưa thì dựng bằng cách chạy lại các lượt kiểm cũ (trước `before`, mặc định mọi lượt). */
+export function checkState(log: PracticeLog, key: string, ret?: number, before?: Date): SchedState | undefined {
+  if (log.checks?.[key]) return log.checks[key];
+  const cut = before?.toISOString();
+  return (log.attempts || []).filter(a => a.src === "check" && a.key === key && (!cut || a.t < cut)).sort((a, b) => a.t.localeCompare(b.t))
+    .reduce<SchedState | undefined>((s, a) => stepCheck(s, a.ok, new Date(a.t), ret), undefined);
+}
+/** Ghi kết quả một lượt kiểm vào lịch (lượt vừa ghi vào attempts cùng thời điểm không bị tính hai lần). */
+export function recordCheck(log: PracticeLog, key: string, ok: boolean, now: Date, ret?: number): PracticeLog {
+  // log cũ chưa có lịch: lần ghi đầu dựng sẵn lịch cho mọi câu kiểm có trong attempts, để khi lượt cũ bị cắt (200 dòng) câu không hiện lại sớm
+  const seed = log.checks ? {} : Object.fromEntries([...new Set((log.attempts || []).filter(a => a.src === "check").map(a => a.key))]
+    .map(k => [k, checkState(log, k, ret, now)]).filter((e): e is [string, SchedState] => !!e[1]));
+  return { ...log, checks: { ...seed, ...log.checks, [key]: stepCheck(checkState(log, key, ret, now), ok, now, ret) } };
 }
 
 /** Hẹn ngày ôn kế cho 4 nút Quên/Khó/Được/Dễ. */
@@ -148,6 +177,7 @@ export function mergeLogs(base: PracticeLog, old: PracticeLog): PracticeLog {
   if (base.days || old.days) out.days = rec(base.days, old.days, (x, y) => Math.max(x ?? 0, y ?? 0));
   if (base.secs || old.secs) out.secs = rec(base.secs, old.secs, (x, y) => Math.max(x ?? 0, y ?? 0));
   if (base.mistakes || old.mistakes) out.mistakes = rec(base.mistakes, old.mistakes, (x, y) => (!x ? y : !y ? x : y.last > x.last ? y : x));
+  if (base.checks || old.checks) out.checks = rec(base.checks, old.checks, later);
   if (attempts.length) out.attempts = attempts;
   if (base.ontime != null || old.ontime != null) out.ontime = Math.max(base.ontime || 0, old.ontime || 0);
   const sa = base.solidAt || old.solidAt; if (sa) out.solidAt = sa;

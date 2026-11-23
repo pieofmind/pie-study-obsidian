@@ -6,7 +6,8 @@ import { QUIZ_GUIDE_PATH } from "./lecguide.ts";
 type O = Record<string, unknown>;
 const S = (v: unknown) => (v == null ? "" : String(v)).trim();
 
-export interface EssayFilePrompt { q: string; token: string; quote: string }
+/** points: các ý bài làm tốt phải nêu (barem chấm), tuỳ chọn để file cũ vẫn hợp lệ. */
+export interface EssayFilePrompt { q: string; token: string; quote: string; points?: string[] }
 export type EssayWhy = QuoteWhy | "broken" | "type" | "shape";
 export interface EssayVet { prompt: EssayFilePrompt | null; why: EssayWhy }
 
@@ -26,7 +27,9 @@ export function vetEssay(text: string, note: string, yaml: (s: string) => unknow
   const x = (qs[0] || {}) as O, q = S(x.q ?? x.question ?? x.prompt);
   if (!q) return { prompt: null, why: "shape" };
   const why = quoteOk(x.quote, note);
-  return why === "ok" ? { prompt: { q, token: S(x.token) || S(c.token) || "teach-back", quote: S(x.quote) }, why } : { prompt: null, why };
+  if (why !== "ok") return { prompt: null, why };
+  const points = Array.isArray(x.points) ? x.points.map(S).filter(Boolean) : [];
+  return { prompt: { q, token: S(x.token) || S(c.token) || "teach-back", quote: S(x.quote), ...(points.length ? { points } : {}) }, why };
 }
 
 /** Mục Trắc nghiệm: có quest → quest · không quest mà có quiz nhanh hợp lệ → quiz nhanh · chưa có gì → nhờ agent soạn.

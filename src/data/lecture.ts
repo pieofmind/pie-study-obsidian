@@ -87,7 +87,7 @@ export function lecturePaths(v: unknown): string[] {
     .filter(s => /\.html?$/i.test(s));
 }
 
-export interface EssayPrompt { q: string; token: string }
+export interface EssayPrompt { q: string; token: string; quote?: string; points?: string[] }
 /** Đề tự luận của một bài: challenge type text trong quest của bài, không có thì câu teach-back trong thẻ ôn. */
 /** Đề tự luận của bài: câu text trong quest → thẻ teach-back → file đề tự luận đã qua kiểm trích dẫn (spec 7.9). */
 export function essayPrompt(slug: string, quests: Quest[], cards: { token?: string; q: string }[], file?: EssayPrompt | null): EssayPrompt | null {
@@ -99,4 +99,13 @@ export function essayPrompt(slug: string, quests: Quest[], cards: { token?: stri
   return tb ? { q: tb.q.trim(), token: "teach-back" } : file || null;
 }
 
-export const essayCmd = (slug: string, p: EssayPrompt, text: string) => `chấm bài tự luận [[${slug}]] — token: ${p.token}\nĐề: ${p.q}\nBài làm: ${text.trim()}`;
+/** Lệnh chấm tự luận (tiếng Việt, không qua tr): giữ 3 dòng đầu cũ (từ khoá kích hoạt skill), thêm barem để agent chấm lặp lại được:
+    tiêu chí của kiểu hiểu, căn cứ trong note, ý cần có; agent xếp từng ý vào Đạt / Thiếu / Sai. Plugin không đọc kết quả. */
+export function essayCmd(slug: string, p: EssayPrompt, text: string): string {
+  const tok = TOKENS.find(t => t[0] === p.token), lines = [`chấm bài tự luận [[${slug}]] — token: ${p.token}`, `Đề: ${p.q}`, `Bài làm: ${text.trim()}`];
+  if (tok) lines.push(`Tiêu chí ${tok[1]}: ${tok[2]}.`);
+  if (p.quote) lines.push(`Căn cứ trong note: "${p.quote}"`);
+  if (p.points?.length) lines.push("Ý cần có:", ...p.points.map(x => `- ${x}`));
+  lines.push("Cách chấm: xếp từng ý vào Đạt (nêu đúng), Thiếu (không nêu) hoặc Sai (nêu mà hiểu lầm). Ý đúng ngoài danh sách vẫn tính Đạt, không trừ điểm vì nói thêm điều đúng. Cuối cùng một dòng Kết luận: Đạt hoặc Chưa đạt.");
+  return lines.join("\n");
+}

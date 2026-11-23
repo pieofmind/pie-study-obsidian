@@ -71,6 +71,8 @@ export interface Ctx {
   S: View; folder: string; motion: boolean; dupes: string[];
   log: (t: Topic) => PracticeLog; quests: Quest[]; settings: { stateDir: string; retention: number; newPerDay: number; sessionCap: number; quizDir: string; lectureDir: string; retentionByDomain: Record<string, number>; timeTrack: boolean }; migration: MigrateReport | null;
   badges: BadgeData;
+  /** Có lượt chấm vừa rồi huỷ được (chỉ trong phiên đang mở). */
+  canUndo: boolean;
   mk: MkRow<Topic>[];   // sổ lỗi sai của mọi bài (đợt 4)
   lib: import("../library-io.ts").LibState;   // kho nguồn (đợt 8a)
   resource: (path: string) => string | null;   // đường dẫn ảnh trong vault cho thẻ <img> (bìa nguồn)

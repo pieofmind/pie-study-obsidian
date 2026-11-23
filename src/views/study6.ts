@@ -9,7 +9,8 @@ import type { Vetted, VetWhy } from "../data/quiznote.ts";
 export interface QN { note: Topic; path: string; stage: "exists" | "wait" | "ready" | "empty"; sentAt: number; cmd: string; easier: boolean; vet?: Vetted }
 
 const WHY = (w: VetWhy) => ({ ok: tr("trích dẫn khớp note"), notfound: tr("Bỏ: trích dẫn không có trong note"), noquote: tr("Bỏ: thiếu trích dẫn"), short: tr("Bỏ: trích dẫn quá ngắn"),
-  type: tr("Bỏ: không phải trắc nghiệm một đáp án"), shape: tr("Bỏ: câu thiếu phương án hoặc đáp án") }[w]);
+  type: tr("Bỏ: dạng câu quiz nhanh chưa nhận"), shape: tr("Bỏ: câu sai khuôn hoặc thiếu đáp án"), noq: tr("Bỏ: thiếu câu hỏi"), opts: tr("Bỏ: dưới 2 phương án"),
+  ans: tr("Bỏ: đáp án không hợp lệ"), blank: tr("Bỏ: cloze không có chỗ trống"), keys: tr("Bỏ: thiếu từ khoá") }[w] ?? w);
 
 export function quizNoteScreen(C: Ctx, q: QN) {
   const top = `<div class="focus-top"><button class="ibtn" data-exit title="${tr("Thoát (Esc)")}" aria-label="${tr("Thoát (Esc)")}">${i("x")}</button><span style="font-size:var(--pa-fs-sm);font-weight:560">${esc(tr("Quiz nhanh · {0}", q.note.title))}</span><span style="flex:1"></span><span class="src">${i("file", 12)}${esc(q.path)}</span></div>`;

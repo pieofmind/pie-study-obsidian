@@ -1,6 +1,6 @@
 /* Đợt 6 (spec 7.6 việc 3) — dữ liệu màn kết quả quest: trạng thái từng câu, đáp án / phương án đã chọn để xem lại. Thuần. */
 import { tr } from "../i18n.ts";
-import type { QItem, QState } from "./quest.ts";
+import { acceptText, blanks, type QItem, type QState } from "./quest.ts";
 
 export type Pick = QState & { input?: string };
 /** Câu tự luận (gõ tự do theo từ khoá): hiện trung tính, không tính là sai, không vào sổ lỗi sai. */
@@ -15,7 +15,7 @@ export function answerText(q: QItem): string {
     case "order": case "chain": return seq(q.items, q.order);
     case "timeline": return (q.slots || []).map((s, k) => `${s} = ${(q.events || [])[q.order![k]]}`).join(" · ");
     case "match": return (q.pairs || []).map(p => `${p[0]} → ${p[1]}`).join(" · ");
-    case "input": return (q.accept || []).join(" / ") || "—";
+    case "input": return acceptText(q) || "—";
     default: return "—";
   }
 }
@@ -26,7 +26,7 @@ export function mineText(q: QItem, p: Pick): string {
     case "order": case "chain": return seq(q.items, p.order);
     case "timeline": return (p.order || []).map((e, k) => `${(q.slots || [])[k]} = ${(q.events || [])[e]}`).join(" · ") || "—";
     case "match": return tr("Sai {0} lần khi nối.", p.mistakes || 0);
-    case "input": return p.input?.trim() || "—";
+    case "input": { const n = blanks(q), parts = (p.input || "").split("\n"); return n > 1 ? Array.from({ length: n }, (_, k) => `${k + 1}. ${parts[k]?.trim() || "—"}`).join(" · ") : p.input?.trim() || "—"; }
     default: return "—";
   }
 }

@@ -8,7 +8,7 @@ export const ATTEMPT_CAP = 200;
 export const questItemKey = (q: string) => "q:" + cardKey(q);
 export const lectureKey = (path: string, token: string) => `lec:${path}#${token}`;
 
-export interface AttemptIn { src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean; conf?: number; q?: string; ref?: string }
+export interface AttemptIn { src: AttemptSrc; key: string; token?: string; ok: boolean; assisted?: boolean; conf?: number; rating?: number; q?: string; ref?: string }
 
 /** Thêm một lượt vào attempts (cắt ở 200 dòng) và áp luật sổ lỗi sai:
     sai → open (đã có thì +misses, cập nhật last; đã gỡ thì mở lại) · đúng, không assisted, vào ngày địa phương SAU ngày last → cleared.
@@ -18,6 +18,7 @@ export function recordAttempt(log: PracticeLog, a: AttemptIn, now: Date): Practi
   if (a.token) row.token = a.token;
   if (a.assisted) row.assisted = true;
   if (a.conf != null) row.conf = a.conf;
+  if (a.rating != null) row.rating = a.rating;
   const attempts = [...(log.attempts || []), row].slice(-ATTEMPT_CAP), strength = strengths(attempts);
   if (a.src === "card" || a.src === "check") return { ...log, attempts, strength };   // lượt kiểm: chỉ là lượt, không vào sổ lỗi sai
   const m = log.mistakes?.[a.key];
@@ -28,6 +29,19 @@ export function recordAttempt(log: PracticeLog, a: AttemptIn, now: Date): Practi
     delete next.clearedAt;
   } else if (m && m.status === "open" && !a.assisted && todayStr(now) > todayStr(new Date(m.last))) next = { ...m, status: "cleared", clearedAt: t };
   return next ? { ...log, attempts, strength, mistakes: { ...log.mistakes, [a.key]: next } } : { ...log, attempts, strength };
+}
+
+/** Huỷ một lượt chấm (cur = log hiện tại, prev = log ngay trước lượt, at = thời điểm lượt): chỉ trả các trường lượt chấm ghi
+    (lịch thẻ/kiểm, quest, tokens, sổ lỗi, đếm ngày) và gỡ dòng attempt có đúng thời điểm đó. Giữ giờ học và mọi trường khác ghi sau. */
+export function undoGrade(cur: PracticeLog, prev: PracticeLog, at: Date): PracticeLog {
+  const t = at.toISOString(), attempts = (cur.attempts || []).filter(a => a.t !== t);
+  const { checks: _c, mistakes: _m, days: _d, ontime: _o, ...rest } = cur;
+  const out: PracticeLog = { ...rest, cards: prev.cards, quests: prev.quests, tokens: prev.tokens, attempts, strength: strengths(attempts) };
+  if (prev.checks) out.checks = prev.checks;
+  if (prev.mistakes) out.mistakes = prev.mistakes;
+  if (prev.days) out.days = prev.days;
+  if (prev.ontime != null) out.ontime = prev.ontime;
+  return out;
 }
 
 /** "Bỏ khỏi sổ" (câu không còn trong vault): plugin không tự xoá, chỉ xoá khi người học bấm. */

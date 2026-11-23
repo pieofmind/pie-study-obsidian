@@ -1,4 +1,4 @@
-# Hướng dẫn soạn file kiểm độc lập (Pie Study) — v1
+# Hướng dẫn soạn file kiểm độc lập (Pie Study) — v2
 
 > File do plugin Pie Study ghi. Sửa tay sẽ bị ghi đè khi plugin đổi phiên bản. Có file này nghĩa là Pie Study đang bật lượt kiểm độc lập: kiểu hiểu chấm đạt trong buổi học chỉ ghi tạm (`learn_pending`), plugin hỏi lại sau vài ngày, không gợi ý, rồi mới chuyển sang `learn_understood`.
 
@@ -21,6 +21,7 @@
   - `choice`: thêm `opts` (2–6 phương án) và `ans` (chỉ số phương án đúng, đếm từ 0).
   - `short`: thêm `accept` (mảng đáp án ngắn được chấp nhận). Plugin chấm khớp **cả câu trả lời** với một đáp án, bỏ dấu, bỏ hoa, bỏ dấu câu — nên ghi đủ các cách gọi đúng.
   - `essay`: thêm `points` (2–3 ý chính, mỗi ý một câu ngắn) và `answer` (đáp án mẫu vài câu). Người học viết xong mới thấy `answer` + `points` và tự tick ý đã nói được; đủ mọi ý mới đạt.
+- Mỗi câu đúng **một** đáp án: câu thực chất có nhiều đáp án đúng thì viết lại cho còn một, hoặc tách câu. Không hỏi về cấu trúc note (tiêu đề, thứ tự mục, tên file, link, tag); chỉ hỏi ý hiểu.
 - File đã có: đọc trước, rồi **thêm** câu mới vào `questions_json`, giữ nguyên câu của token khác; token đã có câu chưa kiểm thì thay câu cũ của đúng token đó. Không ghi đè cả file.
 - Không sửa frontmatter của note, không tick `learn_understood`. Plugin ghi kết quả lượt kiểm.
 

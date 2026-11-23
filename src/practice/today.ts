@@ -36,8 +36,21 @@ export type TdItem<T, C> = { kind: "miss"; row: MkRow<T> } | { kind: "card"; top
 export function todayQueue<T, C>(rows: MkRow<T>[], cards: { topic: T; card: C; recall: number }[], cap: number, done: number, checks: { topic: T; item: CheckItem }[] = []) {
   const all: TdItem<T, C>[] = [...checks.map(c => ({ kind: "check" as const, topic: c.topic, item: c.item })), ...rows.filter(r => r.ready).map(row => ({ kind: "miss" as const, row })),
     ...[...cards].sort((a, b) => a.recall - b.recall).map(c => ({ kind: "card" as const, topic: c.topic, card: c.card }))];
-  const items = all.slice(0, Math.max(0, cap - done));
+  const key = (t: T) => (t as { path?: string }).path ?? t;   // cùng bài có thể là các đối tượng khác nhau (thẻ, sổ lỗi, câu kiểm): so theo path
+  // xen kẽ theo bài TRONG từng loại rồi nối lại: giữ câu kiểm → câu sai → thẻ (bộ đếm và thứ tự ưu tiên của phiên dựa vào đó)
+  const picked = all.slice(0, Math.max(0, cap - done)), topicOf = (x: TdItem<T, C>) => key(x.kind === "miss" ? x.row.topic : x.topic);
+  const items = (["check", "miss", "card"] as const).flatMap(k => interleave(picked.filter(x => x.kind === k), topicOf));
   return { items, later: all.length - items.length };
+}
+
+/** Xếp xen kẽ theo bài: lần lượt mỗi bài một câu, bài nào có câu ưu tiên hơn thì đứng trước; trong một bài giữ nguyên thứ tự.
+    Câu cùng bài đứng liền dễ gợi ý cho nhau, làm yếu lượt kiểm độc lập (học từ LearnKit: tách thẻ anh em). */
+export function interleave<X, T>(xs: X[], topicOf: (x: X) => T): X[] {
+  const groups = new Map<T, X[]>();
+  for (const x of xs) { const k = topicOf(x), g = groups.get(k); if (g) g.push(x); else groups.set(k, [x]); }
+  const out: X[] = [], lists = [...groups.values()];
+  for (let r = 0; out.length < xs.length; r++) for (const g of lists) if (r < g.length) out.push(g[r]);
+  return out;
 }
 
 /** Số mục KHÁC NHAU đã làm hôm nay (thẻ + câu quest), đếm từ attempts — trừ vào trần phiên hôm nay. */

@@ -3,7 +3,8 @@
 import type { QItem } from "./quest.ts";
 import { fold } from "./vaultfiles.ts";
 import { quoteOk, readQuestions } from "./quiznote.ts";
-import { cardKey } from "../practice/log.ts";
+import { cardKey, checkState, type PracticeLog } from "../practice/log.ts";
+import { todayStr } from "../status.ts";
 
 export type CheckKind = "choice" | "short" | "essay";
 export interface CheckItem { q: string; token: string; kind: CheckKind; quote: string; due: string; opts?: string[]; ans?: number; accept?: string[]; points?: string[]; answer?: string }
@@ -41,11 +42,11 @@ export const gradeShort = (input: string, accept: string[]) => { const a = norm(
 /** essay: người học tự tick ý đã nói được; đủ mọi ý mới đạt. */
 export const gradeEssay = (ticked: boolean[], points: string[]) => points.length > 0 && points.every((_, k) => ticked[k] === true);
 
-/** Câu tới hạn (due ≤ hôm nay) chưa có lượt kiểm nào trong nhật ký.
-    shortcut: dựa vào attempts (giữ 200 lượt gần nhất), lượt quá cũ bị cắt thì câu hiện lại. */
-export function dueChecks<T>(files: { topic: T; items: CheckItem[] }[], attempts: (t: T) => { key: string }[], today: string): { topic: T; item: CheckItem }[] {
+/** Câu kiểm tới hạn: chưa làm lần nào thì theo ngày due trong file; đã làm thì theo lịch FSRS đạt/không đạt trong nhật ký (checkState).
+    shortcut: log cũ chưa có lịch thì dựng từ attempts (giữ 200 lượt gần nhất); lượt bị cắt thì câu coi như mới, hiện lại theo due trong file. */
+export function dueChecks<T>(files: { topic: T; items: CheckItem[] }[], logOf: (t: T) => PracticeLog, today: string, retOf: (t: T) => number): { topic: T; item: CheckItem }[] {
   return files.flatMap(({ topic, items }) => {
-    const seen = new Set(attempts(topic).map(a => a.key));
-    return items.filter(c => c.due <= today && !seen.has(checkKey(c))).map(item => ({ topic, item }));
+    const log = logOf(topic), ret = retOf(topic);
+    return items.filter(c => { const s = checkState(log, checkKey(c), ret); return (s ? todayStr(new Date(s.due)) : c.due) <= today; }).map(item => ({ topic, item }));
   });
 }

@@ -18,7 +18,8 @@ const arr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 const CHOICE = ["quiz", "countdown", "auction", "image-quiz", "image", "snapshot"];
 const num = (v: unknown) => (v == null || v === "" || !Number.isFinite(Number(v)) ? undefined : Number(v));
 
-function items(c: O): QItem[] {
+/** Các câu của một challenge (dùng chung cho quest và quiz note). Câu sai khuôn bị lọc. */
+export function items(c: Record<string, unknown>): QItem[] {
   const type = S(c.type), tok = c.token ? S(c.token) : undefined;
   let qs: unknown = c.questions_json;
   if (typeof qs === "string") { try { qs = JSON.parse(qs); } catch { qs = null; } }
@@ -44,11 +45,11 @@ function items(c: O): QItem[] {
   if (type === "image-occlusion") { const pct = c.region_x_pct != null, g = (k: string) => num(c[pct ? `region_${k}_pct` : `region_${k}`]) ?? 0;
     return c.image && c.answer != null ? [{ type, kind: "input", token: tok, q: S(c.prompt ?? c.question), accept: [S(c.answer)], image: S(c.image), region: { x: g("x"), y: g("y"), w: g("width"), h: g("height"), pct }, ex: S(c.explanation) }] : []; }
   if (type === "iframe") return c.html ? [{ type, kind: "iframe", token: tok, q: S(c.question ?? c.prompt), html: S(c.html), height: num(c.height) ?? 520 }] : [];
-  if (type === "truefalse") return list.map(x => ({ type, kind: "choice" as const, tf: true, token: x.token ? S(x.token) : tok, q: S(x.statement ?? x.q ?? x.question), opts: ["Đúng", "Sai"], ans: x.answer === true || x.answer === "true" || x.ans === true ? 0 : 1, ex: S(x.explanation) })).filter(x => x.q);
+  if (type === "truefalse") return list.map(x => ({ type, kind: "choice" as const, tf: true, token: x.token ? S(x.token) : tok, q: S(x.statement ?? x.q ?? x.question), opts: ["Đúng", "Sai"], ans: S(x.answer ?? x.ans).trim().toLowerCase() === "true" ? 0 : 1, ex: S(x.explanation) })).filter(x => x.q);
   if (type === "order") { const it = arr(c.items).map(S), ord = arr(c.answer).map(Number); return it.length && ord.length === it.length ? [{ type, kind: "order", token: tok, q: S(c.question), items: it, order: ord, ex: S(c.explanation) }] : []; }
   if (type === "cloze") return list.map(x => { const s = S(x.sentence ?? x.q); const acc = [...s.matchAll(/\{\{c\d+::([^}]+?)\}\}/g)].map(m => m[1].trim());
     return { type, kind: "input" as const, token: x.token ? S(x.token) : tok, q: s.replace(/\{\{c\d+::[^}]+?\}\}/g, "____"), accept: acc, ex: S(x.explanation) }; }).filter(x => x.accept.length);
-  if (type === "text" || type === "input") return list.map(x => ({ type, kind: "input" as const, token: x.token ? S(x.token) : tok, q: S(x.prompt ?? x.question ?? x.q), accept: arr(x.keywords).map(S).filter(Boolean), ex: S(x.explanation) })).filter(x => x.q && x.accept.length);
+  if (type === "text" || type === "input") return list.map(x => ({ type, kind: "input" as const, token: x.token ? S(x.token) : tok, q: S(x.prompt ?? x.question ?? x.q), accept: arr(x.keywords).map(S).filter(k => k.trim()), ex: S(x.explanation) })).filter(x => x.q && x.accept.length);
   return [];
 }
 
@@ -60,9 +61,11 @@ export function parseQuest(text: string, path: string, yaml: Yaml): Quest | null
   const f = text.match(/^---\n([\s\S]*?)\n---/);
   if (f) { try { fm = (yaml(f[1]) as O) || {}; } catch { fm = {}; } }
   const nodes = (d.nodes as O[]).filter(n => n && n.id).map(n => {
-    const c = (n.challenge || {}) as O, it = items(c);
-    const node: QNode = { id: S(n.id), title: S(n.title) || S(n.id), summary: n.summary ? S(n.summary) : undefined, boss: n.boss === true, items: it };
-    if (!it.length) node.skipped = S(c.type) || "?";
+    // challenges (danh sách) cho một bài trộn nhiều dạng; challenge (một) là khuôn gốc của EngramQuest
+    const cs = (Array.isArray(n.challenges) ? n.challenges : [n.challenge || {}]) as O[], per = cs.map(c => items(c || {}));
+    const node: QNode = { id: S(n.id), title: S(n.title) || S(n.id), summary: n.summary ? S(n.summary) : undefined, boss: n.boss === true, items: per.flat() };
+    const bad = cs.filter((c, k) => !per[k].length).map(c => S(c?.type) || "?");
+    if (bad.length) node.skipped = bad.join(",");
     return node;
   });
   return { uid: fm.uid ? S(fm.uid) : undefined, path, dom: fm.learn_curriculum ? S(fm.learn_curriculum) : undefined, title: S(fm.title) || path.split("/").pop()!.replace(/\.md$/, ""), topics: arr(fm.source_topics).map(x => S(x).replace(/^\[\[|\]\]$/g, "")), nodes };
@@ -73,7 +76,17 @@ export const questKey = (q: Quest, n: QNode) => `${q.uid || q.path}/${n.id}`;
 export const itemText = (it: QItem) => it.q || [...(it.items || []), ...(it.pairs || []).flat(), ...(it.events || [])].join(" · ");
 
 const fold = (s: string) => s.normalize("NFC").toLowerCase().trim().replace(/\s+/g, " ");
+type Blanky = Pick<QItem, "type" | "q" | "accept">;
+/** Số ô nhập: cloze có bao nhiêu chỗ trống thì bấy nhiêu ô (accept giữ đáp án từng chỗ theo thứ tự); dạng khác một ô. */
+export const blanks = (it: Blanky) => (it.type === "cloze" ? Math.max(1, (it.accept || []).length) : 1);
+/** Đề cloze nhiều chỗ trống đánh số từng chỗ để khớp với ô nhập. */
+export const blankQ = (it: Blanky) => { let k = 0; return blanks(it) > 1 && (it.q.match(/____/g) || []).length === blanks(it) ? it.q.replace(/____/g, m => `${m} (${++k})`) : it.q; };
+/** Đáp án để hiện: cloze nhiều chỗ ghi theo số; dạng khác là các đáp án thay thế nhau. */
+export const acceptText = (it: Blanky) => (blanks(it) > 1 ? (it.accept || []).map((x, k) => `${k + 1}. ${x}`).join(" · ") : (it.accept || []).join(" / "));
+
+/** answer: các ô nối bằng "\n" (ô nhập một dòng không gõ được xuống dòng). Cloze nhiều chỗ: đúng mọi ô theo thứ tự. */
 export function gradeInput(answer: string, it: QItem): boolean {
+  if (blanks(it) > 1) { const parts = answer.split("\n"), acc = it.accept || []; return parts.length === acc.length && acc.every((x, k) => !!fold(parts[k]) && fold(parts[k]) === fold(x)); }
   const a = fold(answer); if (!a) return false;
   return it.type === "cloze" || it.type === "image-occlusion" ? (it.accept || []).some(x => fold(x) === a) : (it.accept || []).some(x => a.includes(fold(x)));
 }
