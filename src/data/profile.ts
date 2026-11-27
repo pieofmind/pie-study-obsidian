@@ -1,6 +1,6 @@
 /* Spec 7.10 bước 1: hồ sơ lộ trình đọc từ frontmatter file curriculum-<domain>.md. Plugin chỉ đọc, agent ghi. Thuần. */
 export interface Profile { goal: string; level?: string; deadline?: string; hoursWeek?: number; planWeek?: number;
-  goalPath?: string; progress?: number; pace?: "ahead" | "on-track" | "behind"; done?: string }   // 4 trường cuối chỉ có khi lấy từ goal note (src/data/goal.ts)
+  goalPath?: string; progress?: number; pace?: "ahead" | "on-track" | "behind"; done?: string; final?: import("./goal.ts").FinalTest }   // 4 trường cuối chỉ có khi lấy từ goal note (src/data/goal.ts)
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) && v > 0 ? v : undefined);
 const text = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : undefined);

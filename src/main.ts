@@ -1,10 +1,11 @@
 import { pool } from "./data/pool.ts";
-import { extractDone } from "./data/goal.ts";
+import { extractDone, extractFinal } from "./data/goal.ts";
 import { Plugin, TFile, TAbstractFile, MarkdownView, debounce, getLanguage, parseYaml, Notice } from "obsidian";
 import { setLang, tr } from "./i18n.ts";
 import { todayStr } from "./status.ts";
 import { buildIndex, parseCards, mapGroups, groupDone, sessionsFor, OUTSIDE, type Index, type Topic, type FileRec } from "./data/index.ts";
 import { parseSoHoc, type SoHoc } from "./data/sohoc.ts";
+import { parseNeeds, lockOf } from "./data/prereq.ts";
 import { StudyView, VIEW_TYPE } from "./views/StudyView.ts";
 import { snapshot, diffEvents, type Fx } from "./views/motion.ts";
 import { parseQuest, type Quest } from "./data/quest.ts";
@@ -183,7 +184,7 @@ export default class PieStudyPlugin extends Plugin {
       this.index = buildIndex(recs, this.today, p => cards.get(p)?.length || 0, resolve, lecture);
       for (const d of this.index.domains) {   // dòng "xong trông như thế nào" của goal: đọc thân goal note (chỉ đọc)
         const gp = d.profile?.goalPath, gf = gp ? vault.getAbstractFileByPath(gp) : null;
-        if (d.profile && gf instanceof TFile) { try { const done = extractDone(await vault.cachedRead(gf)); if (done) d.profile = { ...d.profile, done }; } catch (e) { console.error("[pie-study] không đọc được goal note", gp, e); } }
+        if (d.profile && gf instanceof TFile) { try { const body = await vault.cachedRead(gf), done = extractDone(body), final = extractFinal(body); if (done) d.profile = { ...d.profile, done }; if (final) d.profile = { ...d.profile, final }; } catch (e) { console.error("[pie-study] không đọc được goal note", gp, e); } }
       }
       const sohoc = new Map<string, { data: SoHoc; path: string }>();
       for (const d of this.index.domains) {
@@ -191,6 +192,10 @@ export default class PieStudyPlugin extends Plugin {
         if (f) { try { sohoc.set(d.id, { data: parseSoHoc(await vault.cachedRead(f)), path: f.path }); } catch (e) { console.error("[pie-study] không đọc được sổ học", f.path, e); } }
       }
       mark("sohoc"); this.sohoc = sohoc;
+      for (const d of this.index.domains) {   // khoá bài theo "cần (n)" của file lộ trình (chỉ đọc)
+        const cf = d.curPath ? vault.getAbstractFileByPath(d.curPath) : null;
+        if (cf instanceof TFile) { try { const needs = parseNeeds(await vault.cachedRead(cf)); for (const t of d.topics) { const l = lockOf(t, needs, d.topics); if (l.length) t.lock = l; } } catch (e) { console.error("[pie-study] không đọc được file lộ trình", d.curPath, e); } }
+      }
       this.buoi = md.filter(f => inFolder(f.path) && f.path.includes("/buoi/")).map(f => ({ basename: f.basename, path: f.path, links: (mc.getFileCache(f)?.links || []).map(l => l.link) }));
       const qs: Quest[] = [];
       for (const f of md.filter(x => inFolder(x.path) && x.basename.startsWith("quest-"))) {

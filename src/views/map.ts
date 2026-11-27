@@ -1,7 +1,7 @@
 /* Bản đồ lĩnh vực + vỏ thanh trên — port từ prototype quest.js (kiểu D · Quest). */
 import { testOutBtn } from "./study5.ts";
 import { tr } from "../i18n.ts";
-import { CORE, isDone, todayStr } from "../status.ts";
+import { CORE, isDone, starsOf, todayStr } from "../status.ts";
 import { moreModes } from "../data/essaynote.ts";
 import { bossFor } from "../data/quest.ts";
 import { essayPrompt } from "../data/lecture.ts";
@@ -20,10 +20,15 @@ const DOODLE = [   // đồ trên bàn học, cùng nét mực với Pie Bot
   '<path class="f1" d="M20 5v6M20 29v6M5 20h6M29 20h6M9.5 9.5l4 4M26.5 26.5l4 4M30.5 9.5l-4 4M13.5 26.5l-4 4"/><circle class="f1" cx="20" cy="20" r="5"/>',
 ];
 const doodle = (n: number, x: number, y: number, sz: number, rot: number) => `<svg class="q-doo" viewBox="0 0 40 40" style="left:calc(50% + ${x}px);top:${y}px;width:${sz}px;height:${sz}px;transform:rotate(${rot}deg)">${DOODLE[n % DOODLE.length]}</svg>`;
-const starRow = (n: number, tot = 3) => `<span class="q-stars">${Array.from({ length: tot }, (_, k) => `<svg viewBox="0 0 24 24" class="${k < n ? "on" : ""}">${IC.star}</svg>`).join("")}</span>`;
+// sao đặc = đã qua lượt kiểm (learn_understood); sao tạm = tính cả learn_pending, chờ kiểm
+const starRow = (n: number, tmp = n, tot = 3) => `<span class="q-stars">${Array.from({ length: tot }, (_, k) => `<svg viewBox="0 0 24 24" class="${k < n ? "on" : k < tmp ? "pend" : ""}">${IC.star}</svg>`).join("")}</span>`;
 export const qDone = (t: Topic) => isDone(t.status);
 export const qStars = (t: Topic) => (t.und.length >= 17 ? 3 : t.und.length >= 12 && qDone(t) ? 2 : qDone(t) ? 1 : 0);
+export const qStarsTmp = (t: Topic) => starsOf([...t.und, ...(t.pend || [])]);
 export const qTitle = (t: Topic) => shortTitle(t.title);
+const lockNames = (all: Topic[], t: Topic) => (t.lock || []).map(s => { const p = all.find(x => x.slug === s); return p ? tr("Bài {0}", qNum(p)) : s; }).join(", ");
+/** Nút học bị khoá vì bài "cần (n)" chưa đủ 5 lõi (prereq.ts). Bài tới hạn ôn vẫn ôn được. */
+export const lockBtn = (all: Topic[], t: Topic, cls: string) => t.lock?.length && !t.due ? `<button class="${cls} locked" disabled>${i("lock", 16)}${esc(tr("Cần đủ 5 lõi ở {0} trước", lockNames(all, t)))}</button>` : "";
 const qSt = (t: Topic) => (t.due ? tr("Tới hạn ôn") : STLABEL(t.status));
 export const groupName = (g: Group) => g.name || (g.khoa ? tr("Khóa {0}", g.khoa) : g.stage ? tr("Chặng {0}", g.stage) : g.outside ? tr("Ngoài sổ học") : "");
 const kick = (n: string) => n.split(" — ")[0];
@@ -34,7 +39,7 @@ function qPop(C: Ctx, t: Topic, side: string) {   // bảng bật ra khi chạm 
   const st = t.status, A = C.agent;
   return `<div class="q-pop ${side}" data-k="${esc(t.slug)}"><small>${tr("Bài {0}", qNum(t))} · ${qSt(t)}</small><b>${esc(qTitle(t))}</b>
     <div class="q-17">${RUBRIC.flatMap(g => g[1]).map(k => `<i class="${t.und.includes(k[0]) ? "on" : t.pend?.includes(k[0]) ? "pend" : ""}${k[3] ? " c" : ""}" title="${esc(tokName(k[0]))}"></i>`).join("")}</div><p>${tr("{0}/17 kiểu hiểu đã chứng minh", t.und.length)}${t.cards ? " · " + tr("{0} thẻ ôn", t.cards) : ""}</p>
-    ${qBtn(C, st === "new" ? tr("Bắt đầu với {0}", A) : t.due ? tr("Ôn với {0}", A) : tr("Học tiếp với {0}", A), t.due ? cmdReview(t) : cmdLearn(t))}
+    ${lockBtn(C.idx.all, t, "qb w") || qBtn(C, st === "new" ? tr("Bắt đầu với {0}", A) : t.due ? tr("Ôn với {0}", A) : tr("Học tiếp với {0}", A), t.due ? cmdReview(t) : cmdLearn(t))}
     ${testOutBtn(C, t, "pop")}
     <div class="q-pop-row">${st !== "new" && t.cards ? `<button class="qb o" data-review="${esc(t.slug)}">${tr("Ôn thẻ")}</button>` : ""}${st !== "new" && C.quests.some(q => q.topics.includes(t.slug)) ? `<button class="qb o" data-quest="${esc(t.slug)}">${tr("Quest")}</button>` : ""}<button class="qb o" data-go="topic" data-topic="${esc(t.slug)}">${tr("Chi tiết")}</button></div></div>`;
 }
@@ -59,13 +64,13 @@ export function questMap(C: Ctx, d: Domain) {
       if (!phone && !(ni >= 0 && Math.abs(j - ni) <= 2) && j % 2 === 0) deco.push(doodle(n + gi, (side === "r" ? -1 : 1) * (150 + (n * 37) % 70) - 18, y + 8 + (n * 13) % 30, 46 + (n * 7) % 20, (n * 23) % 30 - 15));
       y += QROW; if (isNext) y += 24;
       n++;
-      const icon = st === "master" ? i("star", 30) : ok ? i("check", 30) : isNext ? i("play", 26) : `<span class="num">${qNum(t)}</span>`;
+      const lk = !!t.lock?.length, icon = st === "master" ? i("star", 30) : ok ? i("check", 30) : isNext ? i("play", 26) : lk ? i("lock", 24) : `<span class="num">${qNum(t)}</span>`;
       const later = C.agentReady && t.need === "later";
       return `<div class="q-row ${isNext ? "nx" : ""} ${fresh ? "in" : ""}${later ? " later" : ""}" style="--o:${o};--i:${Math.min(n, 14)}" data-row="${esc(t.slug)}">
         ${isNext ? `<div class="q-bot ${botSide}"><div class="mascot-slot" data-mascot data-mood="idle" data-greet="1" data-mkey="map:${esc(d.id)}"></div></div><span class="q-halo"></span>${selT === t ? "" : `<span class="q-tip">${st === "learning" ? tr("Học tiếp") : tr("Bắt đầu")}</span>`}` : ""}
-        <button class="q-node ${ok ? "ok" : st}${st === "master" ? " gold" : ""}${isNext ? " next" : ""}" data-sel="${selT === t ? "" : esc(t.slug)}" title="${esc(t.title)}">${icon}${t.due ? `<span class="q-due">${i("clock", 12)}</span>` : ""}</button>
-        ${st !== "new" ? `<span class="q-starpos">${starRow(stars)}</span>` : ""}
-        ${selT === t ? qPop(C, t, o > 20 ? "pr" : o < -20 ? "pl" : "pc") : `<div class="q-lab ${side}"><b>${esc(qTitle(t))}</b><small class="${t.due ? "due" : ""}">${later ? `<span class="q-later">${tr("để sau")}</span>` : ""}${qSt(t)}${st !== "new" ? " · " + t.und.length + "/17" : ""}</small></div>`}</div>`;
+        <button class="q-node ${ok ? "ok" : st}${lk ? " lock" : ""}${st === "master" ? " gold" : ""}${isNext ? " next" : ""}" data-sel="${selT === t ? "" : esc(t.slug)}" title="${esc(t.title)}">${icon}${t.due ? `<span class="q-due">${i("clock", 12)}</span>` : ""}</button>
+        ${st !== "new" || qStarsTmp(t) ? `<span class="q-starpos">${starRow(stars, qStarsTmp(t))}</span>` : ""}
+        ${selT === t ? qPop(C, t, o > 20 ? "pr" : o < -20 ? "pl" : "pc") : `<div class="q-lab ${side}"><b>${esc(qTitle(t))}</b><small class="${t.due ? "due" : ""}">${later ? `<span class="q-later">${tr("để sau")}</span>` : ""}${lk && !t.due ? esc(tr("Cần {0}", lockNames(d.topics, t))) : qSt(t)}${st !== "new" ? " · " + t.und.length + "/17" : ""}</small></div>`}</div>`;
     }).join("");
     const bo = QOFF[g.list.length % 8] * flip * k; pts.push([bo, y + 44, false]); y += QROW + 8;
     const seg = (a: [number, number, boolean], b: [number, number, boolean]) => `M${280 + a[0]} ${a[1]} C${280 + a[0]} ${a[1] + 46}, ${280 + b[0]} ${b[1] - 46}, ${280 + b[0]} ${b[1]}`;

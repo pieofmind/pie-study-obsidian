@@ -1,6 +1,7 @@
 /* Đợt 8a (spec 7.10): màn Nguồn của lộ trình, màn Kho nguồn, bìa tài liệu. Chỉ hiện khi có Pie Agent (Free ẩn hẳn). */
 import { tr, getLang } from "../i18n.ts";
 import { i, esc, crumb, curDom, domName, fmtD, STLABEL, type Ctx } from "./shared.ts";
+import type { Profile } from "../data/profile.ts";
 import { secsInLast } from "../practice/secs.ts";
 import { neededCount, coverageOf, badLessons, type Cov } from "../data/coverage.ts";
 import { paceOf, weekCounts, weekSeries } from "../data/pace.ts";
@@ -166,8 +167,18 @@ export function goalCard(C: Ctx, d: { id: string; topics: { und: string[] }[]; p
     : pc.kind === "idle" ? `${need}<p class="g8-need warn"><span>${tr("4 tuần qua chưa nắm thêm bài nào. Trước đó trung bình {0} bài/tuần.", fmtN(pc.before || 0))}</span></p>`
     : pc.kind === "open" ? `<p class="g8-need soft"><span>${tr("Theo nhịp này còn khoảng {0} tuần cho {1} bài chưa nắm.", `<b>${pc.eta ?? 0}</b>`, remaining)}</span></p>` : need;
   return `<div class="q-card g8"><small>${tr("Mục tiêu")}</small><b class="g8-goal">${p.goalPath ? `<a data-open="${esc(p.goalPath)}" title="${esc(tr("Mở note mục tiêu"))}">${esc(p.goal)}</a>` : esc(p.goal)}</b>${p.done ? `<p class="g8-p g8-done" ${p.goalPath ? `data-open="${esc(p.goalPath)}" title="${esc(tr("Mở note mục tiêu"))}"` : ""}>${esc(p.done)}</p>` : ""}${head ? `<div class="g8-head">${head}</div>` : ""}
-    <div class="g8-nums">${p.planWeek ? num(fmtN(p.planWeek), tr("bài/tuần kế hoạch")) : ""}${pace}${time}${goalNum(p)}</div>${note}${later ? `<p class="g8-need soft"><span>${tr("{0} bài để sau không tính vào số bài cần nắm.", later)}</span></p>` : ""}
+    ${finalBlock(C, p, remaining)}<div class="g8-nums">${p.planWeek ? num(fmtN(p.planWeek), tr("bài/tuần kế hoạch")) : ""}${pace}${time}${goalNum(p)}</div>${note}${later ? `<p class="g8-need soft"><span>${tr("{0} bài để sau không tính vào số bài cần nắm.", later)}</span></p>` : ""}
     <div class="g8-foot">${srcLink}${late ? `<button class="g8-link" data-bob="${esc(p.goalPath ? `check-in mục tiêu [[${p.goalPath.split("/").pop()!.replace(/\.md$/, "")}]]` : cmd)}">${i("refresh", 14)}${tr("Đặt lại mục tiêu")}</button>` : ""}</div></div>`;
+}
+
+/** Đợt 11: Bài cuối lộ trình trên thẻ mục tiêu (đọc goal note, plugin không ghi). Nút gửi lệnh chỉ mở khi mọi bài cốt lõi đã nắm cơ bản. */
+export function finalBlock(C: Pick<Ctx, "agentReady">, p: Profile, remaining: number): string {
+  const f = p.final; if (!f || !p.goalPath) return "";
+  const ok = f.criteria.filter(c => c.ok).length, cmd = `làm bài cuối lộ trình [[${p.goalPath.split("/").pop()!.replace(/\.md$/, "")}]]`;
+  const btn = remaining > 0 ? `<button class="g8-link" disabled>${i("lock", 14)}${tr("Còn {0} bài cốt lõi chưa nắm", remaining)}</button>`
+    : `<button class="g8-link" ${C.agentReady ? `data-bob="${esc(cmd)}"` : `data-copy="${esc(cmd)}"`}>${i("play", 14)}${C.agentReady ? tr("Làm bài cuối lộ trình") : tr("Chép lệnh làm bài cuối")}</button>`;
+  return `<div class="g8-final"><small>${tr("Bài cuối lộ trình")}</small><p class="g8-p g8-done" data-open="${esc(p.goalPath)}" title="${esc(tr("Mở note mục tiêu"))}">${esc(f.task)}</p>
+    <p class="g8-need soft"><span>${tr("{0} trên {1} tiêu chí đạt", ok, f.criteria.length)}${f.result ? ` · ${tr("lần làm {0}: {1}", fmtD(f.result.date), esc(f.result.text))}` : ""}</span></p>${btn}</div>`;
 }
 
 /** Dòng "Tuần này M bài nắm cơ bản · tuần trước M′" ở Tổng quan, gộp mọi lộ trình (kể cả chưa có hồ sơ). Chưa từng có bài nắm cơ bản thì không hiện. */

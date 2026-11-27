@@ -211,5 +211,10 @@ export const EN: Record<string, string> = {
   "Những câu bạn chọn Chắc chắn nhưng trả lời sai: chỗ dễ tưởng mình đã hiểu.": "Questions you marked Certain but got wrong: where it is easy to think you already understand.",
   "A S D chọn độ tự tin · Space lật thẻ · 1–4 tự chấm · Esc thoát.": "A S D sets confidence · Space flips · 1–4 rates · Esc exits.",
   "Đang chờ lượt kiểm độc lập.": "Waiting for the independent check.", "{0} kiểu hiểu đang chờ kiểm nhưng chưa có câu kiểm.": "{0} understanding types are waiting for a check but have no check question yet.",
+  "Cần đủ 5 lõi ở {0} trước": "Needs all 5 core kinds in {0} first", "Chờ lượt kiểm: {0} bài": "Waiting for checks: {0} lessons",
   "Nhờ {0} soạn câu kiểm": "Ask {0} to write check questions", "Cần học lại: {0}.": "Needs relearning: {0}.", "Học lại với {0}": "Relearn with {0}",
+  "Bài cuối lộ trình": "Final project", "{0} trên {1} tiêu chí đạt": "{0} of {1} criteria met", "lần làm {0}: {1}": "attempt {0}: {1}",
+  "Còn {0} bài cốt lõi chưa nắm": "{0} core lessons not yet learned", "Làm bài cuối lộ trình": "Do the final project", "Chép lệnh làm bài cuối": "Copy final project command",
+  "{0} trên {1} câu": "{0} of {1} questions", "Đạt khi kiểm lại": "Passed on recheck", "kiểm lại đạt {0}": "recheck {0}",
+  "Kiểm lại sau buổi học, không gợi ý: tỷ lệ đạt ở lượt kiểm đầu của mỗi câu": "Checked after the session, without hints: pass rate on the first check of each question",
 };

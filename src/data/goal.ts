@@ -58,3 +58,19 @@ export function extractDone(md: string): string | undefined {
   }
   return plainText(out.join(" ")) || undefined;
 }
+
+/** Đợt 11: mục `## Bài cuối lộ trình` của goal note (khuôn skill muc-tieu): đoạn đề, các tiêu chí checkbox, dòng "Kết quả YYYY-MM-DD: …" gần nhất do agent ghi. Không có mục → undefined. */
+export interface FinalTest { task: string; criteria: { text: string; ok: boolean }[]; result?: { date: string; text: string } }
+export function extractFinal(md: string): FinalTest | undefined {
+  const lines = md.replace(/\r/g, "").split("\n"), i = lines.findIndex(l => /^##\s+Bài cuối lộ trình\s*$/i.test(l)); if (i < 0) return undefined;
+  const task: string[] = [], criteria: FinalTest["criteria"] = []; let result: FinalTest["result"];
+  for (const l of lines.slice(i + 1)) {
+    if (/^#{1,6}\s/.test(l)) break;
+    const c = l.match(/^\s*[-*+]\s+\[([ xX])\]\s+(.+)$/), r = l.match(/^\s*(?:[-*>]\s*)?Kết quả\s+(\d{4}-\d\d-\d\d)\s*:\s*(.+)$/);
+    if (c) criteria.push({ text: plainText(c[2]), ok: c[1] !== " " });
+    else if (r) result = { date: r[1], text: plainText(r[2]) };
+    else if (l.trim() && !criteria.length) task.push(l.trim());
+  }
+  const t = plainText(task.join(" "));
+  return t || criteria.length ? { task: t, criteria, ...(result ? { result } : {}) } : undefined;
+}

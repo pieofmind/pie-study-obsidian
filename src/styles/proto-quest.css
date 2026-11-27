@@ -80,6 +80,7 @@
 .q-stars { display: inline-flex; gap: 1px; padding: 2px 5px; border-radius: 99px; background: var(--card); border: 2px solid var(--ol); }
 .q-stars svg { width: 13px; height: 13px; fill: var(--bg2); stroke: none; }
 .q-stars svg.on { fill: var(--gold); stroke: var(--ol); stroke-width: 1.6; }
+.q-stars svg.pend { fill: color-mix(in srgb, var(--gold) 35%, transparent); stroke: var(--gold); stroke-width: 1.6; stroke-dasharray: 2.5 2; }
 /* bài kế tiếp: hai vòng đứt quay chậm + nhãn nổi nảy — điểm gọi hành động DUY NHẤT */
 .q-halo { position: absolute; left: calc(50% + var(--o) * 1px - 58px); top: -17px; width: 116px; height: 112px; border-radius: 40px; border: 3px dashed var(--c); animation: q-spin 14s linear infinite; pointer-events: none; opacity: .9; }
 @keyframes q-spin { to { transform: rotate(1turn); } }
@@ -458,7 +459,8 @@
 /* bản tối: hàng sao dưới nút — sao trống và viền phải tách khỏi nền tối */
 .ob[data-theme="dark"] .q-stars { background: color-mix(in srgb, var(--ink) 8%, var(--bg)); border-color: var(--ink3); }
 .ob[data-theme="dark"] .q-stars svg { fill: color-mix(in srgb, var(--ink) 25%, var(--bg)); }
-.ob[data-theme="dark"] .q-stars svg.on { stroke: #17223F; }
+.ob[data-theme="dark"] .q-stars svg.on { fill: var(--gold); stroke: #17223F; }
+.ob[data-theme="dark"] .q-stars svg.pend { fill: color-mix(in srgb, var(--gold) 35%, transparent); }
 
 /* ── Sổ học: huy hiệu bài = nút bài mini (cùng hình bản đồ) ── */
 .q-mini { position: relative; flex: none; width: 34px; height: 30px; border-radius: 12px; display: grid; place-items: center; border: 2.5px solid var(--ol); background: var(--card); color: var(--ink3); box-shadow: 0 3px 0 var(--ol); }
@@ -587,3 +589,8 @@
 .q-stamp.pend i { color: #fff; border: 2.5px dashed #fff; background: rgba(255,255,255,.22); }
 .tok.pend .ck { box-shadow: none; outline: 1.5px dashed var(--pa-ink-3); outline-offset: -1.5px; color: var(--pa-ink-3); }
 .tok.pend { color: var(--pa-ink-2); }
+
+/* khoá bài theo "cần (n)" của lộ trình (prereq.ts) */
+.q-node.lock { background: var(--bg2); color: var(--ink3); box-shadow: 0 8px 0 -0px var(--bg2), 0 8px 0 3px var(--ol); }   /* nền đặc như Boss khoá; opacity làm đường vẽ phía sau lộ qua nút */
+.q-node.lock::before { opacity: 0; }
+.qb.locked, .btn.locked { opacity: .6; cursor: not-allowed; white-space: normal; text-align: left; }

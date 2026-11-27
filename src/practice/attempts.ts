@@ -35,9 +35,10 @@ export function recordAttempt(log: PracticeLog, a: AttemptIn, now: Date): Practi
     (lịch thẻ/kiểm, quest, tokens, sổ lỗi, đếm ngày) và gỡ dòng attempt có đúng thời điểm đó. Giữ giờ học và mọi trường khác ghi sau. */
 export function undoGrade(cur: PracticeLog, prev: PracticeLog, at: Date): PracticeLog {
   const t = at.toISOString(), attempts = (cur.attempts || []).filter(a => a.t !== t);
-  const { checks: _c, mistakes: _m, days: _d, ontime: _o, ...rest } = cur;
+  const { checks: _c, firstChecks: _f, mistakes: _m, days: _d, ontime: _o, ...rest } = cur;
   const out: PracticeLog = { ...rest, cards: prev.cards, quests: prev.quests, tokens: prev.tokens, attempts, strength: strengths(attempts) };
   if (prev.checks) out.checks = prev.checks;
+  if (prev.firstChecks) out.firstChecks = prev.firstChecks;
   if (prev.mistakes) out.mistakes = prev.mistakes;
   if (prev.days) out.days = prev.days;
   if (prev.ontime != null) out.ontime = prev.ontime;

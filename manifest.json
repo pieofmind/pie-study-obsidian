@@ -1,7 +1,7 @@
 {
   "id": "pie-study",
   "name": "Pie Study",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "minAppVersion": "1.10.0",
   "description": "Map your lessons, track how well you understand each one, and review on a spaced schedule. Pairs with Pie Agent to study any lesson in one click.",
   "author": "Pie of Mind",

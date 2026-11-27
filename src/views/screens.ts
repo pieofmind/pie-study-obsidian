@@ -5,11 +5,11 @@ import { GUIDE_PATH, cmdNewLecture } from "../data/lecguide.ts";
 import { essayPrompt } from "../data/lecture.ts";
 import { weekLine } from "./study10.ts";
 import { RUBRIC } from "../data/rubric.ts";
-import { nextOf, domStats, overdueDaysT, type Topic } from "../data/index.ts";
+import { nextOf, domStats, overdueDaysT, waitingCheck, type Topic } from "../data/index.ts";
 import { fmtDate, type Status } from "../status.ts";
-import { cardKey, firstGoodIntervals, LEVELS } from "../practice/log.ts";
+import { cardKey, firstGoodIntervals, LEVELS, rateText } from "../practice/log.ts";
 import { i, esc, md, sty, QPAL, STLABEL, tokName, fmtD, qNum, bobBtn, ring, crumb, curDom, findT, cmdLearn, cmdReview, cmdNewPath, domName, type Ctx } from "./shared.ts";
-import { groupsOf, qDone, groupName } from "./map.ts";
+import { groupsOf, qDone, groupName, lockBtn } from "./map.ts";
 import { rhythmBlock, testOutBtn } from "./study5.ts";
 import { matsTab, topicMats } from "./study13.ts";
 import { mapTab } from "./study14.ts";
@@ -24,12 +24,14 @@ const activeOf = (rows: ReturnType<typeof domRows>) => rows.filter(r => r.s.done
 export const nextUp = (C: Ctx) => activeOf(domRows(C)).find(r => r.nx);
 
 /* Tổng quan = 2 view của dashboard-hoc-tap.base: tiến độ theo lĩnh vực + cần ôn (tới hạn). */
+const lateRate = (C: Ctx, dom?: string) => rateText(C.lateRate(dom));   // thước kiểm trễ (đợt 11)
+
 export function overviewScreen(C: Ctx) {
   const ALL = C.idx.all, DUE = C.idx.due, A = C.agent;
   const rows = domRows(C);
   const act = activeOf(rows), idle = rows.filter(r => !act.includes(r));
   const c: Record<Status, number> = { master: 0, basic: 0, learning: 0, new: 0 }; ALL.forEach(t => c[t.status]++);
-  const top = act.find(r => r.nx), old = DUE[0];
+  const top = act.find(r => r.nx), old = DUE[0], rate = lateRate(C);
   return `<div class="page ov">${crumb(`<span>${tr("Tổng quan")}</span>`)}
     <div class="ov-hero"><div class="ov-now"><h1 class="t">${tr("Hôm nay học gì?")}</h1><p class="sub">${tr("Tổng quan mọi lĩnh vực")}</p>
       <div class="ov-acts has-td">${todayBtn(C.todayInfo())}${DUE.length ? `<button class="ov-act due" data-go="review"><span class="ov-act-ic">${i("clock", 22)}</span><span><b>${tr("Ôn {0} bài tới hạn", DUE.length)}</b><small>${tr("lâu nhất quá {0} ngày", overdueDaysT(old, C.today))} · ${esc(domTitle(C, old.dom))}</small></span>${i("arrow", 20)}</button>` : ""}
@@ -37,13 +39,13 @@ export function overviewScreen(C: Ctx) {
       ${C.agentReady ? `<button class="ov-new" data-bob="lộ trình mới">${i("plus", 32)}<span><b>${tr("Lộ trình mới")}</b><small>${tr("{0} hỏi mục tiêu, nguồn rồi chia bài trong khung chat", esc(A))}</small></span>${i("arrow", 16)}</button>` : ""}
       <div class="ov-sum">${weekLine(C)}<div class="ov-big"><b>${c.master + c.basic}</b><i>/${ALL.length}</i><small>${tr("bài đã nắm")}</small></div>
         <div class="ov-mix">${(["master", "basic", "learning", "new"] as Status[]).map(k => c[k] ? `<i class="${k}" style="flex:${Math.max(c[k], ALL.length * .02)}"></i>` : "").join("")}</div>
-        <ul>${([["master", tr("Master")], ["basic", tr("Nắm cơ bản")], ["learning", tr("Đang học dở")], ["new", tr("Chưa học")]] as [Status, string][]).map(([k, l]) => `<li><i class="${k}"></i>${l}<b>${c[k]}</b></li>`).join("")}<li class="sep">${tr("Lĩnh vực")}<b>${tr("{0} đang học · {1} chưa mở", act.length, idle.length)}</b></li></ul></div></div>
+        <ul>${([["master", tr("Master")], ["basic", tr("Nắm cơ bản")], ["learning", tr("Đang học dở")], ["new", tr("Chưa học")]] as [Status, string][]).map(([k, l]) => `<li><i class="${k}"></i>${l}<b>${c[k]}</b></li>`).join("")}${rate ? `<li class="sep" title="${tr("Kiểm lại sau buổi học, không gợi ý: tỷ lệ đạt ở lượt kiểm đầu của mỗi câu")}">${tr("Đạt khi kiểm lại")}<b>${rate}</b></li>` : ""}<li class="sep">${tr("Lĩnh vực")}<b>${tr("{0} đang học · {1} chưa mở", act.length, idle.length)}</b></li></ul></div></div>
     ${rhythmBlock(C, C.rhythm())}
     <h2 class="ov-h">${tr("Đang học")}<small>${tr("{0} lĩnh vực · tới hạn trước", act.length)}</small></h2>
     <div class="ov-doms">${act.map(({ d, k, s, nx }, n) => `<div class="ov-dom in" style="--i:${n};${sty(k)}" data-go="home" data-dom="${esc(d.id)}"><span class="ov-tag"></span>
-      <div class="ov-t"><b>${esc(domName(d))}</b><small>${tr("{0}/{1} nắm", s.done, s.n)}${s.learning ? " · " + tr("{0} đang học", s.learning) : ""}</small></div>
+      <div class="ov-t"><b>${esc(domName(d))}</b><small>${tr("{0}/{1} nắm", s.done, s.n)}${s.learning ? " · " + tr("{0} đang học", s.learning) : ""}${(r => r ? " · " + tr("kiểm lại đạt {0}", r) : "")(lateRate(C, d.id))}</small></div>
       <div class="ov-mid"><span class="ov-track">${groupsOf(C, d).map(g => `<span class="ov-grp" title="${esc(groupName(g))}">${g.list.map(t => `<i class="${t.status}${t.due ? " due" : ""}${t === nx ? " nx" : ""}"></i>`).join("")}</span>`).join("")}</span>
-        ${nx ? `<small class="ov-next">${i("play", 11)}${tr("Bài kế: {0}", esc(nx.title))}</small>` : `<small class="ov-next">${tr("Đã học hết")}</small>`}</div>
+        ${nx ? `<small class="ov-next">${i("play", 11)}${tr("Bài kế: {0}", esc(nx.title))}</small>` : `<small class="ov-next">${(w => w ? tr("Chờ lượt kiểm: {0} bài", w) : tr("Đã học hết"))(waitingCheck(d))}</small>`}</div>
       ${s.due ? `<span class="pill att">${i("clock", 11)}${tr("{0} tới hạn", s.due)}</span>` : `<span></span>`}</div>`).join("")}</div>
     ${idle.length ? `<h2 class="ov-h">${tr("Chưa bắt đầu")}<small>${tr("{0} lĩnh vực · {1} bài đang chờ", idle.length, idle.reduce((n, r) => n + r.s.n, 0))}</small></h2>
     <div class="ov-idle">${idle.map(({ d, k, s }) => `<button class="ov-chip" style="${sty(k)}" data-go="home" data-dom="${esc(d.id)}"><i></i><b>${esc(domName(d))}</b><small>${tr("{0} bài", s.n)}</small></button>`).join("")}</div>` : ""}
@@ -73,7 +75,7 @@ export function topicScreen(C: Ctx) {
   return `<div class="page">${crumb(`<a data-go="home" data-dom="${esc(t.dom)}">${esc(domTitle(C, t.dom))}</a>`, `<span>${tr("Bài {0}", qNum(t))}</span>`)}
     <div class="t-head" style="${sty(groupIdx(C, t))}"><div class="tx"><div style="display:flex;gap:6px;flex-wrap:wrap"><span class="pill ${qDone(t) ? "done" : s === "learning" ? "acc" : ""}">${STLABEL(s)}</span>${t.due ? `<span class="pill att">${i("clock", 12)}${tr("Tới hạn ôn từ {0}", fmtD(t.next))}</span>` : ""}</div>
     <h1 class="t" style="margin-top:10px">${esc(t.title)}</h1><p class="sub">${t.rev ? tr("Học lần gần nhất {0}", fmtDate(t.rev, true)) : tr("Học lần gần nhất — chưa học")} · ${tr("{0}/17 token", t.und.length)} · ${tr("{0} thẻ", t.cards)}</p>
-    <div class="acts">${bobBtn(C, s === "new" ? tr("Bắt đầu học với {0}", A) : t.due ? tr("Ôn với {0}", A) : tr("Học tiếp với {0}", A), t.due ? cmdReview(t) : cmdLearn(t))}${testOutBtn(C, t, "page")}
+    <div class="acts">${lockBtn(C.idx.all, t, "btn") || bobBtn(C, s === "new" ? tr("Bắt đầu học với {0}", A) : t.due ? tr("Ôn với {0}", A) : tr("Học tiếp với {0}", A), t.due ? cmdReview(t) : cmdLearn(t))}${testOutBtn(C, t, "page")}
     ${cards.length ? `<button class="btn" data-review="${esc(t.slug)}">${i("cards")}${tr("Ôn thẻ")}${dueCards ? ` <span class="c">${dueCards}</span>` : ""}</button>` : ""}${hasQuest ? `<button class="btn" data-quest="${esc(t.slug)}">${i("quest")}${tr("Làm quest")}</button>` : ""}<button class="btn" data-qreq="${esc(t.path)}">${i("zap", 14)}${tr("Quiz nhanh")}</button>
     ${essayBtn(C, t)}${lecBtn(C, t)}<button class="btn ghost" data-open="${esc(t.path)}">${i("file")}${tr("Mở note")}</button></div></div>
     ${ring(t.und.length, 17, 112, 8, qDone(t))}</div>

@@ -1,6 +1,6 @@
 /* Gom dữ liệu học từ frontmatter (thuần, không cần Obsidian). Plugin đưa vào danh sách file + frontmatter. */
 import { lecturePaths } from "./lecture.ts";
-import { topicStatus, isDue, understood, isDone, overdueDays, type Status } from "../status.ts";
+import { topicStatus, isDue, understood, isDone, overdueDays, coreTmp, type Status } from "../status.ts";
 import type { SoHoc } from "./sohoc.ts";
 import { parseSources, parseNeed } from "./coverage.ts";
 import { type Profile } from "./profile.ts";
@@ -18,6 +18,7 @@ export interface Topic {
   materials: string[];   // learn_materials (8b): link tới sơ đồ / canvas / pieflow / mindmap của bài
   dimension?: string;    // learn_dimension (8b): link tới MOC của dimension
   outside?: boolean;   // note không thuộc lộ trình (quiz note, đợt 6): dom = OUTSIDE
+  lock?: string[];     // slug bài "cần (n)" chưa đủ 5 lõi (prereq.ts); có → không mời học bài này
 }
 export const OUTSIDE = "__outside__";
 export interface Domain { id: string; title: string; curPath?: string; profile?: Profile; materials: string[]; topics: Topic[] }
@@ -70,8 +71,11 @@ export function buildIndex(files: FileRec[], today: string, cardCount: (path: st
   return { domains, all, due: all.filter(t => t.due).sort((a, b) => (a.next || "").localeCompare(b.next || "")) };
 }
 
-/** Bài kế tiếp: bài đang học đầu tiên, không có thì bài chưa học đầu tiên. */
-export const nextOf = (d: Domain) => d.topics.find(t => t.status === "learning") || d.topics.find(t => t.status === "new");
+/** Bài kế tiếp: bài đang học đầu tiên, không có thì bài chưa học đầu tiên; bỏ qua bài đang khoá (prereq.ts) và bài đã đủ 5 core tạm (chờ lượt kiểm, không cần học tiếp). */
+const open = (t: Topic) => !t.lock?.length && !coreTmp(t.und, t.pend);
+/** Số bài chưa vững nhưng đã đủ 5 core tạm — chỉ còn chờ lượt kiểm. */
+export const waitingCheck = (d: Domain) => d.topics.filter(t => !isDone(t.status) && coreTmp(t.und, t.pend)).length;
+export const nextOf = (d: Domain) => d.topics.find(t => t.status === "learning" && open(t)) || d.topics.find(t => t.status === "new" && open(t));
 
 export function domStats(d: Domain) {
   const c = { master: 0, basic: 0, learning: 0, new: 0 };

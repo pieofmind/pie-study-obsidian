@@ -18,6 +18,9 @@ export function topicStatus(und: string[], reviewed: unknown): Status {
 
 export const isDone = (s: Status) => s === "basic" || s === "master";
 
+/** Đủ 5 core khi tính cả token tạm (learn_pending, chờ lượt kiểm) — mức sao vàng nhạt. */
+export const coreTmp = (und: string[], pend: string[] = []) => CORE.every(c => und.includes(c) || pend.includes(c));
+
 /** "YYYY-MM-DD[ THH:MM[:SS]]" → mốc giờ máy; không phải ngày → null (Bases date() lỗi → không tới hạn). */
 export function localMs(s: unknown): number | null {
   const m = typeof s === "string" && s.match(/^(\d{4})-(\d\d)-(\d\d)(?:[T ](\d\d):(\d\d)(?::(\d\d))?)?/);

@@ -12,7 +12,7 @@ import { setHtml, appendHtml, htmlFrag } from "./html.ts";
 import { play, type Fx } from "./motion.ts";
 import { badgesScreen, unlockToast } from "./badges.ts";
 import { reviewScreen as practiceReview, quizScreen, verdict, fmtGap, freshItem, secsLeft, focusTop, needConf, CONF_KEYS, type RV, type QZ, type RvCard } from "./practice.ts";
-import { recordCard, recordCheck, recordQuest, recordAnswer, previewIntervals, dueQueue, cardKey, cardRecall, DEFAULT_STATE_DIR } from "../practice/log.ts";
+import { firstCheckTally, recordCard, recordCheck, recordQuest, recordAnswer, previewIntervals, dueQueue, cardKey, cardRecall, DEFAULT_STATE_DIR } from "../practice/log.ts";
 import { recordAttempt, questItemKey, dropMistake, sureWrong, undoGrade } from "../practice/attempts.ts";
 import { essayScreen, lectureScreen, essayReady, type ES, type LC } from "./study3.ts";
 import { quizNoteScreen, type QN } from "./study6.ts";
@@ -151,6 +151,7 @@ export class StudyView extends ItemView {
       folder: p.settings.folder, motion: p.settings.motion, dupes: p.dupes,
       log: t => p.practice.get(t), quests: p.quests, settings: p.settings, migration: p.migration, badges: p.badgeData(), canUndo: !!this.undoSnap,
       mk, todayInfo: () => this.todayInfo(mk), rhythm: () => this.rhythm(),
+      lateRate: dom => [...idx.all, ...(dom == null ? p.outside : [])].filter(t => (dom == null || t.dom === dom) && p.practice.has(t)).map(t => firstCheckTally(p.practice.get(t))).reduce((a, b) => ({ ok: a.ok + b.ok, n: a.n + b.n }), { ok: 0, n: 0 }),
       materials: (links, from) => resolveMaterials(links, l => this.app.metadataCache.getFirstLinkpathDest(l, from)?.path ?? null,
         k => { const id = MAT_PLUGIN_IDS[k], pl = (this.app as unknown as { plugins?: { enabledPlugins?: Set<string> } }).plugins; return !id || !!pl?.enabledPlugins?.has(id); }),
       cm: { src: path => this.cmaps.get(path)?.src, resolve: (l, from) => this.app.metadataCache.getFirstLinkpathDest(l, from)?.path ?? null, title: (l, from) => this.dimTitle(l, from) },

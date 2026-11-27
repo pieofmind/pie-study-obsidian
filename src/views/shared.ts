@@ -83,7 +83,8 @@ export interface Ctx {
   lectureDir: string;
   checks: (t: Topic) => { token: string }[];   // câu kiểm hợp lệ của bài (đợt 9)
   quick: (t: Topic) => { path: string; n: number; last?: string } | null;   // quiz nhanh hợp lệ (7.9)
-  rhythm: () => import("./study5.ts").Rhythm;   // khối Nhịp học (đợt 5, tính khi cần)
+  rhythm: () => import("./study5.ts").Rhythm;
+  lateRate: (dom?: string) => { ok: number; n: number };   // thước kiểm trễ (đợt 11): lượt kiểm đầu, cả hệ (gồm bài ngoài lộ trình) hoặc một lĩnh vực   // khối Nhịp học (đợt 5, tính khi cần)
   todayInfo: () => { n: number; miss: number; cards: number; later: number; done: number; streak: number };   // nút Phiên hôm nay (tính khi cần)
 }
 /** Tên lĩnh vực để hiện: bài có learn_curriculum rỗng gom vào một nhóm không tên → hiện nhãn thay vì "—". */

@@ -1,6 +1,7 @@
 /* Nhật ký luyện tập (spec mục 5) — chỗ DUY NHẤT plugin được ghi. Thuần, bất biến: mỗi hàm trả log mới.
    FSRS dùng thư viện ts-fsrs (MIT). Mastery KHÔNG ở đây: tokens chỉ là tín hiệu để agent đọc. */
 import { todayStr } from "../status.ts";
+import { tr } from "../i18n.ts";
 import { fsrs, generatorParameters, createEmptyCard, Rating, type Card, type Grade } from "ts-fsrs";
 export { Rating };
 
@@ -25,6 +26,8 @@ export interface PracticeLog {
   solidAt?: SolidAt; secs?: Record<string, number>;
   /** Lịch kiểm lại từng câu kiểm độc lập (khoá chk:), FSRS đạt/không đạt. Tuỳ chọn: log cũ không có thì dựng từ attempts (checkState). */
   checks?: Record<string, SchedState>;
+  /** Kết quả LƯỢT KIỂM ĐẦU của từng câu kiểm (đợt 11, thước kiểm trễ). Lưu riêng vì attempts bị cắt 200 dòng; log cũ suy từ lượt sớm nhất còn lưu. */
+  firstChecks?: Record<string, boolean>;
 }
 export interface SolidAt { t: string; est?: true; lost?: string }
 export type AttemptSrc = "card" | "quest" | "lecture" | "check";
@@ -109,8 +112,18 @@ export function recordCheck(log: PracticeLog, key: string, ok: boolean, now: Dat
   // log cũ chưa có lịch: lần ghi đầu dựng sẵn lịch cho mọi câu kiểm có trong attempts, để khi lượt cũ bị cắt (200 dòng) câu không hiện lại sớm
   const seed = log.checks ? {} : Object.fromEntries([...new Set((log.attempts || []).filter(a => a.src === "check").map(a => a.key))]
     .map(k => [k, checkState(log, k, ret, now)]).filter((e): e is [string, SchedState] => !!e[1]));
-  return { ...log, checks: { ...seed, ...log.checks, [key]: stepCheck(checkState(log, key, ret, now), ok, now, ret) } };
+  const first = firstChecks(log);
+  return { ...log, checks: { ...seed, ...log.checks, [key]: stepCheck(checkState(log, key, ret, now), ok, now, ret) }, firstChecks: { ...first, [key]: first[key] ?? ok } };
 }
+/** Kết quả lượt kiểm đầu theo câu: trường đã lưu, bù bằng lượt kiểm sớm nhất còn trong attempts (log cũ). */
+export function firstChecks(log: PracticeLog): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  for (const a of [...(log.attempts || [])].filter(a => a.src === "check").sort((a, b) => a.t.localeCompare(b.t))) if (!(a.key in out)) out[a.key] = a.ok;
+  return { ...out, ...log.firstChecks };
+}
+export const firstCheckTally = (log: PracticeLog) => { const v = Object.values(firstChecks(log)); return { ok: v.filter(Boolean).length, n: v.length }; };
+/** Thước kiểm trễ để hiện: chưa có câu → rỗng; dưới 10 câu dạng đếm; từ 10 câu phần trăm. */
+export const rateText = (t: { ok: number; n: number }) => !t.n ? "" : t.n < 10 ? tr("{0} trên {1} câu", t.ok, t.n) : `${Math.round(t.ok / t.n * 100)}%`;
 
 /** Hẹn ngày ôn kế cho 4 nút Quên/Khó/Được/Dễ. */
 export function previewIntervals(log: PracticeLog, c: CardRef, now: Date, ret?: number): { rating: Grade; due: string; ms: number }[] {
@@ -178,6 +191,7 @@ export function mergeLogs(base: PracticeLog, old: PracticeLog): PracticeLog {
   if (base.secs || old.secs) out.secs = rec(base.secs, old.secs, (x, y) => Math.max(x ?? 0, y ?? 0));
   if (base.mistakes || old.mistakes) out.mistakes = rec(base.mistakes, old.mistakes, (x, y) => (!x ? y : !y ? x : y.last > x.last ? y : x));
   if (base.checks || old.checks) out.checks = rec(base.checks, old.checks, later);
+  if (base.firstChecks || old.firstChecks) out.firstChecks = { ...old.firstChecks, ...base.firstChecks };
   if (attempts.length) out.attempts = attempts;
   if (base.ontime != null || old.ontime != null) out.ontime = Math.max(base.ontime || 0, old.ontime || 0);
   const sa = base.solidAt || old.solidAt; if (sa) out.solidAt = sa;
