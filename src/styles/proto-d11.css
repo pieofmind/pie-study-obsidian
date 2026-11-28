@@ -36,7 +36,8 @@
 .cv-why { font-size: 12px; color: var(--ink3, var(--ink2)); }
 .phone .cv-s { display: none; } .phone .cv-row { grid-template-columns: 10px minmax(0, 1fr) 14px; }
 /* bài để sau */
-.q-row.later > .q-node { opacity: .38; filter: saturate(.3); }
+.q-row.later > .q-node { background: var(--bg2); color: var(--ink3); box-shadow: 0 8px 0 0 var(--bg2), 0 8px 0 3px var(--ol); }   /* nền đặc; opacity làm đường vẽ phía sau lộ qua nút */
+.q-row.later > .q-node::before { opacity: 0; }
 .q-row.later .q-lab { opacity: .6; }
 .q-later { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 6px; background: var(--bg2); color: var(--ink2); font-size: 11px; font-weight: 700; }
 /* Tổng quan: Lộ trình mới */
@@ -263,3 +264,13 @@ img.mascot-img { filter: none; } img.mascot-img:not(#ps) { box-shadow: none; bor
 .gv canvas[data-cur="pointer"] { cursor: pointer; }
 .gv canvas[data-cur="grab"] { cursor: grab; }
 .gv canvas[data-cur="grabbing"] { cursor: grabbing; }
+
+/* bảng nổi khi bấm một chấm trên sơ đồ khái niệm (cmpop.ts) — neo đáy khung */
+.cm-pop { position: absolute; left: 12px; right: 12px; bottom: 12px; max-height: 58%; display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; border: 1px solid var(--ln); border-radius: 14px; background: var(--card); color: var(--ink); box-shadow: 0 8px 24px rgba(0, 0, 0, .12); z-index: 3; }
+.cm-pop-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.cm-pop-h b { display: block; font-size: 15px; } .cm-pop-h small { display: block; margin-top: 2px; color: var(--ink2); font-size: 12px; }
+.cm-pop-x { flex: none; display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--ink2); cursor: pointer; }
+.cm-pop-q { display: flex; gap: 8px; } .cm-pop-q input { flex: 1; min-width: 0; }
+.cm-pop-a { overflow: auto; min-height: 0; padding: 8px 10px; border-radius: 10px; background: var(--bg); font-size: 13.5px; line-height: 1.55; }
+.cm-pop-a > :first-child { margin-top: 0; } .cm-pop-a > :last-child { margin-bottom: 0; }
+.cm-pop-ft { display: flex; flex-wrap: wrap; gap: 8px; }

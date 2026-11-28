@@ -27,14 +27,14 @@ const empty = (C: Ctx, title: string, cmd: string) => `<div class="mt-empty"><b>
 function box(C: Ctx, path: string, src: string | null | undefined, emptyTitle: string, cmd: string, sm = false, open = true, sw = "") {
   if (src === undefined) return `<p class="sub cm-load">${tr("Đang đọc sơ đồ…")}</p>`;
   if (src === null) return empty(C, emptyTitle, cmd);
-  return `<div class="cm-box"><div class="cm-scroll"><div class="gv${sm ? " sm" : ""}" data-cm="${esc(path)}"><div class="gv-ctl"><button data-gz="in" aria-label="${tr("Phóng to")}">+</button><button data-gz="out" aria-label="${tr("Thu nhỏ")}">−</button><button data-gz="fit" aria-label="${tr("Vừa khung")}">${i("target", 15)}</button></div><div class="gv-hint">${tr("Cuộn để phóng to · kéo nền để di chuyển · kéo chấm để xếp lại")}</div></div></div>
-    <div class="cm-foot"><span class="dg-lg"><i class="on"></i>${tr("Có note, bấm để mở")}<i></i>${tr("Chưa có note")}</span><code>${esc(path)} · ${tr("Sơ đồ khái niệm")}</code><span class="cm-acts">${sw}${open ? `<button class="btn ghost" data-open="${esc(path)}">${i("file", 14)}${tr("Mở note")}</button>` : ""}${askBtn(C, tr("Nhờ {0} vẽ lại", C.agent), cmd)}</span></div></div>`;
+  return `<div class="cm-box"><div class="cm-scroll"><div class="gv${sm ? " sm" : ""}" data-cm="${esc(path)}"><div class="gv-ctl"><button data-gz="in" aria-label="${tr("Phóng to")}">+</button><button data-gz="out" aria-label="${tr("Thu nhỏ")}">−</button><button data-gz="fit" aria-label="${tr("Vừa khung")}">${i("target", 15)}</button></div><div class="gv-hint">${tr("Cuộn để phóng to · kéo nền để di chuyển · kéo chấm để xếp lại · bấm chấm để hỏi nhanh hoặc mở note")}</div></div></div>
+    <div class="cm-foot"><span class="dg-lg"><i class="on"></i>${tr("Có note")}<i></i>${tr("Chưa có note")}</span><code>${esc(path)} · ${tr("Sơ đồ khái niệm")}</code><span class="cm-acts">${sw}${open ? `<button class="btn ghost" data-open="${esc(path)}">${i("file", 14)}${tr("Mở note")}</button>` : ""}${askBtn(C, tr("Nhờ {0} vẽ lại", C.agent), cmd)}</span></div></div>`;
 }
 
 /** Sơ đồ tổng ghép từ các bài (khung đồ thị; StudyView dựng từ chỉ mục). */
 function mergedBox(C: Ctx, d: Domain, sw: string, extra: string, dim = "") {
-  return `<div class="cm-box"><div class="cm-scroll"><div class="gv" data-cm="merge:${esc(d.id)}${dim ? ":" + esc(dim) : ""}"><div class="gv-ctl"><button data-gz="in" aria-label="${tr("Phóng to")}">+</button><button data-gz="out" aria-label="${tr("Thu nhỏ")}">−</button><button data-gz="fit" aria-label="${tr("Vừa khung")}">${i("target", 15)}</button></div><div class="gv-hint">${tr("Cuộn để phóng to · kéo nền để di chuyển · kéo chấm để xếp lại")}</div></div></div>
-    <div class="cm-foot"><span class="dg-lg"><i class="on"></i>${tr("Có note, bấm để mở")}<i></i>${tr("Chưa có note")}</span><span class="cm-acts">${sw}${extra}</span></div></div>`;
+  return `<div class="cm-box"><div class="cm-scroll"><div class="gv" data-cm="merge:${esc(d.id)}${dim ? ":" + esc(dim) : ""}"><div class="gv-ctl"><button data-gz="in" aria-label="${tr("Phóng to")}">+</button><button data-gz="out" aria-label="${tr("Thu nhỏ")}">−</button><button data-gz="fit" aria-label="${tr("Vừa khung")}">${i("target", 15)}</button></div><div class="gv-hint">${tr("Cuộn để phóng to · kéo nền để di chuyển · kéo chấm để xếp lại · bấm chấm để hỏi nhanh hoặc mở note")}</div></div></div>
+    <div class="cm-foot"><span class="dg-lg"><i class="on"></i>${tr("Có note")}<i></i>${tr("Chưa có note")}</span><span class="cm-acts">${sw}${extra}</span></div></div>`;
 }
 
 /** Tab "Sơ đồ" ở trang bài: sơ đồ của bài + thẻ "Thuộc dimension". */

@@ -1,8 +1,8 @@
 /* View chính của Pie Study: giữ trạng thái màn (như S của prototype), vẽ bằng chuỗi HTML đã escape, sự kiện uỷ quyền. */
-import { ItemView, WorkspaceLeaf, Platform, TFile, Notice, normalizePath, type TAbstractFile } from "obsidian";
+import { ItemView, WorkspaceLeaf, Platform, TFile, Notice, normalizePath, MarkdownRenderer, type TAbstractFile } from "obsidian";
 import type PieStudyPlugin from "../main.ts";
 import { tr } from "../i18n.ts";
-import { ask, copyCommand, agentReady, agentName, agentVersion } from "../agent.ts";
+import { ask, copyCommand, agentReady, agentName, agentVersion, quickFn } from "../agent.ts";
 import { type Ctx, type View, curDom, i, domName, cmdLearn, cmdReview } from "./shared.ts";
 import { domStats } from "../data/index.ts";
 import { questMap, shellD } from "./map.ts";
@@ -25,6 +25,7 @@ import { matModal, matFilesHtml, type MA } from "./matmodal.ts";
 import { appendMaterials, removeMaterial, pickMaterialFiles } from "../data/matwrite.ts";
 import { linkTarget } from "../data/goal.ts";
 import { mountGraph } from "./cmgraph.ts";
+import { openCmPop } from "./cmpop.ts";
 import { extractMap, buildNoteIndex, lookupNote, parseMermaid, mergeCurriculum, type CmParse } from "../data/conceptmap.ts";
 import { resolveMaterials, MAT_PLUGIN_IDS } from "../data/materials.ts";
 import { lectureStat, type LecStat } from "../data/lecstat.ts";
@@ -239,8 +240,13 @@ export class StudyView extends ItemView {
           parse = mergeCurriculum(dm.title, [], dm.topics.map(t => ({ slug: t.slug, title: t.title, map: mapOf(t) })));
         } else parse = mergeCurriculum(domName(d), dims.map(x => ({ key: x.key, title: x.title })), d.topics.map(t => { const src = this.cmaps.get(t.path)?.src; return { slug: t.slug, title: t.title, dim: dims.find(x => x.topics.includes(t))?.key, map: src ? parseMermaid(src) : null }; }));
       } else { const src = this.cmaps.get(key)?.src; if (!src) return; parse = parseMermaid(src); }
+      const lt = merged ? undefined : C.idx.all.find(t => t.path === key), lesson = lt ? `bài [[${lt.slug}]] (${lt.title})` : d ? `lộ trình "${domName(d)}"` : `note [[${key}]]`;
       const ok = mountGraph(box, { parse, pathOf: (text, link) => (link ? mc.getFirstLinkpathDest(link, from)?.path : null) ?? lookupNote(ix, text),
-        open: p => void this.app.workspace.openLinkText(p, "", true), go: slug => { const t = this.plugin.index.all.find(x => x.slug === slug); if (t) this.go({ screen: "topic", topic: t.slug, dom: t.dom, ttab: "notebook", sel: null }); } });
+        pick: dot => openCmPop(box, dot, { lesson, agent: agentName(this.app), quick: quickFn(this.app),
+          ask: cmd => void (agentReady(this.app) ? ask(this.app, cmd) : copyCommand(cmd)),
+          open: p => void this.app.workspace.openLinkText(p, from, true),   // from = note chứa sơ đồ: [[tên]] trùng nhau thì giải như trong note đó
+          go: slug => { const t = this.plugin.index.all.find(x => x.slug === slug); if (t) this.go({ screen: "topic", topic: t.slug, dom: t.dom, ttab: "notebook", sel: null }); },
+          md: (text, el) => void MarkdownRenderer.render(this.app, text, el, from, this) }) });
       if (!ok) setHtml(box.closest(".cm-scroll")!, `<div class="cm-err">${i("info", 14)}${tr("Không đọc được sơ đồ. Mở note để sửa hoặc nhờ {0} vẽ lại.", agentName(this.app))}</div>`);
     });
   }
@@ -901,7 +907,7 @@ export class StudyView extends ItemView {
     const ds = el.dataset;
     if (ds.bob) { e.stopPropagation(); void ask(this.app, ds.bob); return; }
     if (ds.copy != null) { e.stopPropagation(); void copyCommand(ds.copy); return; }
-    if (ds.open) { e.stopPropagation(); void this.app.workspace.openLinkText(ds.open, "", true); return; }
+    if (ds.open) { e.stopPropagation(); void this.app.workspace.openLinkText(ds.open, el.closest<HTMLElement>("[data-src]")?.dataset.src ?? "", true); return; }   // data-src = file chứa link [[tên]] (sổ học): tên trùng thì giải như trong file đó
     if (ds.ttab) return this.go({ ttab: ds.ttab });
     if (ds.cmmode) return this.go({ cmMode: ds.cmmode as View["cmMode"] });
     if (ds.dim != null && !ds.go) return this.go({ dim: ds.dim });

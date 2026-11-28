@@ -1,8 +1,9 @@
-/* Đồ thị khái niệm trên canvas (prototype d17): cuộn = phóng to quanh con trỏ, kéo nền = di chuyển, kéo chấm = xếp lại, bấm chấm đặc = mở note.
+/* Đồ thị khái niệm trên canvas (prototype d17): cuộn = phóng to quanh con trỏ, kéo nền = di chuyển, kéo chấm = xếp lại, bấm chấm = bảng hỏi nhanh / mở / tạo note (cmpop.ts).
    Logic xếp chỗ nằm ở data/conceptmap.ts (thuần, có test); file này chỉ vẽ và nghe chuột. */
 import { buildGraph, tick, settle, separate, PAL, BIG, type CmBlock, type CmGraph, type CmParse } from "../data/conceptmap.ts";
+import type { CmDot } from "../data/cmask.ts";
 
-export interface MountOpts { parse: CmParse; pathOf: (text: string, link: string | null) => string | null; open: (path: string) => void; go: (slug: string) => void }
+export interface MountOpts { parse: CmParse; pathOf: (text: string, link: string | null) => string | null; pick: (d: CmDot) => void }
 const LOD_K = .9;   // đồ thị lớn: khái niệm (lod) chỉ hiện khi phóng to tới mức này hoặc khi rê vào bài chứa nó
 
 /** Dựng đồ thị vào `box` (đã có sẵn nút +/−/vừa khung). Trả false nếu không đọc được sơ đồ. */
@@ -65,9 +66,14 @@ export function mountGraph(box: HTMLElement, o: MountOpts): boolean {
     const [mx, my] = pos(e);
     if (drag) { const p = toW(mx, my); drag.o.x = p.x; drag.o.y = p.y; drag.moved = true; alpha = Math.max(alpha, .25); return; }
     if (pan) { T.x = pan.x + mx - pan.mx; T.y = pan.y + my - pan.my; cv.dataset.cur = "grabbing"; return; }
-    hot = at(mx, my) || null; cv.dataset.cur = hot && (hot.path || hot.slug) ? "pointer" : hot ? "grab" : "";
+    hot = at(mx, my) || null; cv.dataset.cur = hot ? "pointer" : "";
   });
-  cv.addEventListener("pointerup", () => { if (drag && !drag.moved) { if (drag.o.slug) o.go(drag.o.slug); else if (drag.o.path) o.open(drag.o.path); } if (drag) drag.o.fixed = false; drag = pan = null; cv.dataset.cur = ""; });
+  const name = (b: CmBlock) => b.lines.join(" ");
+  const dot = (b: CmBlock): CmDot => {
+    const trail: string[] = []; for (let x = b.par ? G.byId.get(b.par) : undefined; x; x = x.par ? G.byId.get(x.par) : undefined) trail.unshift(name(x));
+    return { lab: name(b), trail, kids: b.kids.map(k => name(G.byId.get(k)!)), path: b.path, slug: b.slug };
+  };
+  cv.addEventListener("pointerup", () => { if (drag && !drag.moved) o.pick(dot(drag.o)); if (drag) drag.o.fixed = false; drag = pan = null; cv.dataset.cur = ""; });
   cv.addEventListener("pointerleave", () => { hot = null; });
   box.querySelector(".gv-ctl")?.addEventListener("click", e => {
     const b = (e.target as HTMLElement).closest<HTMLElement>("[data-gz]"); if (!b) return; e.stopPropagation();
